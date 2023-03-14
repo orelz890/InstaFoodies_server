@@ -3,7 +3,7 @@
 
 ### How to run:
 
-**Preparation
+***Preparation
 You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03UM
 1. Install node.js on your computer: https://nodejs.org/en/
 2. Open a folder for the server
@@ -23,5 +23,5 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
    Project settings -> Service accounts -> Generate new private key 
                     -> open key.js file -> paste the key generated).
 
-**Run:
+***Run:
 1. copy this to the terminal: node .\server.js
