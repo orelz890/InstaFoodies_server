@@ -3,7 +3,7 @@
 
 ### How to run:
 
-***Preparation***
+***Preparation:***
 You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03UM
 1. Install node.js on your computer: https://nodejs.org/en/
 2. Open a folder for the server
