@@ -27,3 +27,8 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
 
 ***Run:***
 1. copy this to the terminal: node .\server.js
+
+
+### Note: For building the android side (client) you can follow the first half of this video:
+
+https://www.youtube.com/watch?v=ycja50TzjoU
