@@ -32,7 +32,7 @@ app.use(express.urlencoded({extended: true}));
  * @param name the first {@code string}
  * @param email the second {@code string}
  * @param password the third {@code string}
- * @returns User {@code Response}
+ * @returns Void
  */
 app.post('/signup', async (req, res) => {
 
@@ -54,9 +54,9 @@ app.post('/signup', async (req, res) => {
         if (!(await user).exists){
             const response = await db.collection("users").doc(id).set(newUserJson);
             console.log("signup: Client " + req.body.email + " signed up");
-            res.status(200).send(response);
+            res.status(200).send();
         }else {
-            res.status(400).send(user);
+            res.status(400).send();
             console.log("signup: User {" + (await user).data().email +  "} already exist..");
         }
 
@@ -101,26 +101,115 @@ app.post('/login', async (req, res) => {
  * @param email {@code string}
  * @returns User {@code Response}
  */
-app.post('/getuser', async (req, res) => {
+app.get('/getUser/:email', async (req, res) => {
     
     try{
-        const id = req.body.email;
+        const id = req.params.email;
 
-        // console.log("in getuser");
+        console.log("in getUser: " + id);
 
         const user = db.collection("users").doc(id).get();
         if ((await user).exists){
-            res.status(200).send(user);
-            console.log("getuser: the user set is - {" + id + "}");
+            // const userData = user.data;
+            res.status(200).json(user);
+            console.log("getUser: the user name is - {" + user + "}");
         }else {
-            res.status(400).send(user);
-            console.log("getuser: User don't exist..");
+            res.status(400).send(null);
+            console.log("getUser: User don't exist..");
         }
 
     } catch(error) {
+        console.error(error);
         res.status(400).send(error);
     }
 });
+
+
+
+
+/**
+ * Updates user info
+ * @param email {@code string}
+ * @body map {@code map<String, String>}
+ * @returns User {@code Response}
+ */
+app.patch('/patchUser/:email', async (req, res) => {
+    
+    try{
+        const { body, params: {email}} = req;
+        const { password } = body;
+        const id = email;
+        console.log("in patchUser: " + email);
+
+        const newUserJson = {
+            password: password
+        };
+
+        console.log("in patchUser");
+
+        await db.collection("users").doc(id).update(newUserJson)
+        .then(() => {
+            res.status(200).send();
+            console.log("patchUser: Successfully updated user- {" + id + "}");
+          })
+          .catch((error) => {
+            res.status(400).send();
+            console.log("patchUser: Failed to update user- {" + id + "}");
+          });
+
+    } catch(error) {
+        console.error(error);
+        res.status(400).send(error);
+    }
+});
+
+
+
+
+// /**
+//  * Delete an object assosiated with @id from the given reference in firebase. 
+//  * @param ref the first {@code string}
+//  * @param id the second {@code string}
+//  * @returns Void
+//  */
+// app.delete('/deleteObjectFromRef/:ref/:id', async (req, res) => {
+//     console.log("im in delete");
+//     const ref = req.params.ref; // get the document reference from the URL path parameters
+//     const id = req.params.id; // get the ID of the document to delete
+  
+//     db.collection(ref).doc(id).delete()
+//       .then(() => {
+//         console.log('Document deleted successfully');
+//         res.status(200).send();
+//       })
+//       .catch((error) => {
+//         console.error(error);
+//         res.status(400).send();
+//       });
+//   });
+
+
+/**
+ * Delete an object assosiated with @id from the given reference in firebase. 
+ * @param ref the first {@code string}
+ * @param id the second {@code string}
+ * @returns Void
+ */
+app.delete('/deleteObjectFromRef/:email', async (req, res) => {
+    console.log("im in delete");
+    const ref = "users"; // get the document reference from the URL path parameters
+    const id = req.params.email; // get the ID of the document to delete
+  
+    db.collection(ref).doc(id).delete()
+      .then(() => {
+        console.log('Document deleted successfully');
+        res.status(200).send();
+      })
+      .catch((error) => {
+        console.error(error);
+        res.status(400).send();
+      });
+  });
 
 
 
