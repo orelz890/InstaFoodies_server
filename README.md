@@ -48,4 +48,6 @@ https://www.youtube.com/watch?v=T8SZv6h2WbY
 
 https://www.youtube.com/playlist?list=PLrnPJCHvNZuCbuD3xpfKzQWOj3AXybSaM
 
-https://futurestud.io/tutorials/retrofit-2-how-to-delete-objects-on-the-server
+***Retrofit tutorials:***  https://futurestud.io/tutorials/retrofit-2-how-to-delete-objects-on-the-server
+
+***HTTP status codes: ***  https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
