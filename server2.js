@@ -1,4 +1,4 @@
-// include the express module using the require methood
+// using the express module as our server using the require methood
 const express = require('express')
 const { signupHendler, loginHendler, getUserHendler, patchUser, deleteObjectFromRefHendler } = require('./entryController')
 

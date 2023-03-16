@@ -26,7 +26,12 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
                     -> open key.js file -> paste the key generated).
 
 ***Run:***
-1. Copy this to the terminal: node .\server.js
+
+***With nodemon**
+1. Copy this to the terminal: npm start
+
+***Without nodemon**
+1. Copy this to the terminal: node .\server2.js
 
 
 ## Useful sources
