@@ -29,6 +29,8 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
 1. Copy this to the terminal: node .\server.js
 
 
+## Useful sources
+
 ### Note: For building the android side (client) you can follow the first half of this video:
 
 https://www.youtube.com/watch?v=ycja50TzjoU
@@ -41,3 +43,7 @@ https://square.github.io/retrofit/
 ### Note: learned how to organize the files correctly in node.js:
 
 https://www.youtube.com/watch?v=T8SZv6h2WbY
+
+### Understanding how CRUD methods work with node.js implementation:
+
+https://www.youtube.com/playlist?list=PLrnPJCHvNZuCbuD3xpfKzQWOj3AXybSaM
