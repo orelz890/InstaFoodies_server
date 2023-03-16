@@ -74,26 +74,29 @@ app.post('/signup', async (req, res) => {
  */
 app.post('/login', async (req, res) => {
     
-    try{
-        // This is the body of the request. We constructed an object from this data.
-        const id = req.body.email;
+    // This is the body of the request. We constructed an object from this data.
+    const id = req.body.email;
 
-        // console.log("in login");
-            
-        // Adding this user to our database
-        const user = db.collection("users").doc(id).get();
-        if ((await user).exists){
-            console.log("login: Client " + id + " loged in");
-            res.status(200).send(user);
-        }else {
-            res.status(400).send(user);
-            console.log("login: User don't exist..");
+    // console.log("in login");
+        
+    // Adding this user to our database
+    const user = db.collection("users").doc(id).get()
+    .then(doc => {
+        if (doc.exists) {
+            const jsonData = JSON.stringify(doc.data());
+            console.log(jsonData);
+            res.status(200).send(jsonData);
+
+        } else {
+            console.log('login: Document not found!');
         }
-
-    } catch(error) {
+    }).catch(error => {
+        console.log('login: Error getting document:', error);
         res.status(400).send(error);
-    }
+
+    });
 });
+
 
 
 /**
@@ -103,25 +106,25 @@ app.post('/login', async (req, res) => {
  */
 app.get('/getUser/:email', async (req, res) => {
     
-    try{
-        const id = req.params.email;
+    const id = req.params.email;
 
-        console.log("in getUser: " + id);
+    console.log("in getUser: " + id);
 
-        const user = db.collection("users").doc(id).get();
-        if ((await user).exists){
-            // const userData = user.data;
-            res.status(200).json(user);
-            console.log("getUser: the user name is - {" + user + "}");
-        }else {
-            res.status(400).send(null);
-            console.log("getUser: User don't exist..");
+    db.collection("users").doc(id).get()
+    .then(doc => {
+        if (doc.exists) {
+            const jsonData = JSON.stringify(doc.data());
+            console.log(jsonData);
+            res.status(200).send(jsonData);
+
+        } else {
+            console.log('getUser: Document not found!');
         }
-
-    } catch(error) {
-        console.error(error);
+    }).catch(error => {
+        console.log('getUser: Error getting document:', error);
         res.status(400).send(error);
-    }
+
+    });
 });
 
 
@@ -135,58 +138,27 @@ app.get('/getUser/:email', async (req, res) => {
  */
 app.patch('/patchUser/:email', async (req, res) => {
     
-    try{
-        const { body, params: {email}} = req;
-        const { password } = body;
-        const id = email;
-        console.log("in patchUser: " + email);
+    const { body, params: {email}} = req;
+    const { password } = body;
+    const id = email;
+    console.log("in patchUser: " + email);
 
-        const newUserJson = {
-            password: password
-        };
+    const newUserJson = {
+        password: password
+    };
 
-        console.log("in patchUser");
+    console.log("in patchUser");
 
-        await db.collection("users").doc(id).update(newUserJson)
-        .then(() => {
-            res.status(200).send();
-            console.log("patchUser: Successfully updated user- {" + id + "}");
-          })
-          .catch((error) => {
-            res.status(400).send();
-            console.log("patchUser: Failed to update user- {" + id + "}");
-          });
-
-    } catch(error) {
-        console.error(error);
-        res.status(400).send(error);
-    }
+    await db.collection("users").doc(id).update(newUserJson)
+    .then(() => {
+        res.status(200).send();
+        console.log("patchUser: Successfully updated user- {" + id + "}");
+        })
+    .catch((error) => {
+        res.status(400).send();
+        console.log("patchUser: Failed to update user- {" + id + "}");
+    });
 });
-
-
-
-
-// /**
-//  * Delete an object assosiated with @id from the given reference in firebase. 
-//  * @param ref the first {@code string}
-//  * @param id the second {@code string}
-//  * @returns Void
-//  */
-// app.delete('/deleteObjectFromRef/:ref/:id', async (req, res) => {
-//     console.log("im in delete");
-//     const ref = req.params.ref; // get the document reference from the URL path parameters
-//     const id = req.params.id; // get the ID of the document to delete
-  
-//     db.collection(ref).doc(id).delete()
-//       .then(() => {
-//         console.log('Document deleted successfully');
-//         res.status(200).send();
-//       })
-//       .catch((error) => {
-//         console.error(error);
-//         res.status(400).send();
-//       });
-//   });
 
 
 /**
@@ -195,12 +167,13 @@ app.patch('/patchUser/:email', async (req, res) => {
  * @param id the second {@code string}
  * @returns Void
  */
-app.delete('/deleteObjectFromRef/:email', async (req, res) => {
+app.delete('/deleteObjectFromRef/:ref/:email', async (req, res) => {
     console.log("im in delete");
-    const ref = "users"; // get the document reference from the URL path parameters
-    const id = req.params.email; // get the ID of the document to delete
-  
-    db.collection(ref).doc(id).delete()
+    const { params: {ref , email}} = req;
+    const id = email; // get the ID of the document to delete
+    console.log('ref = ' + ref + ', id = ' + id);
+
+    await db.collection(ref).doc(id).delete()
       .then(() => {
         console.log('Document deleted successfully');
         res.status(200).send();
