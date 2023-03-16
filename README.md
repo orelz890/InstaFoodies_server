@@ -44,7 +44,7 @@ https://square.github.io/retrofit/
 
 https://www.youtube.com/watch?v=T8SZv6h2WbY
 
-### Understanding how CRUD methods work with node.js implementation:
+### Understanding how CRUD methods work with node.js + retrofit2 implementation:
 
 https://www.youtube.com/playlist?list=PLrnPJCHvNZuCbuD3xpfKzQWOj3AXybSaM
 
