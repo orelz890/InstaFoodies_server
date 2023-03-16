@@ -37,3 +37,7 @@ https://www.youtube.com/watch?v=ycja50TzjoU
 ### Note: In the android side- Retrofit turns your HTTP API into a Java interface.
 
 https://square.github.io/retrofit/
+
+### Note: learned how to organize the files correctly in node.js:
+
+https://www.youtube.com/watch?v=T8SZv6h2WbY
