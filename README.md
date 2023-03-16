@@ -47,3 +47,5 @@ https://www.youtube.com/watch?v=T8SZv6h2WbY
 ### Understanding how CRUD methods work with node.js implementation:
 
 https://www.youtube.com/playlist?list=PLrnPJCHvNZuCbuD3xpfKzQWOj3AXybSaM
+
+https://futurestud.io/tutorials/retrofit-2-how-to-delete-objects-on-the-server
