@@ -1,19 +1,23 @@
 // include the express module using the require methood
 
-const admin = require("firebase-admin");
+import admin from 'firebase-admin';
+import crypto from 'crypto';
+
 /* Key that tells firebase that we are a reliable src
    How to generate in firebase: 
    Project settings -> Service accounts -> Generate new private key 
                     -> open key.js file -> paste the key generated.
 */
-const credentials = require("./key.json");
+import credentials from './key.json' assert { type: "json" };
 
 // Init the application using the 'credentials
 admin.initializeApp({
-    credential: admin.credential.cert(credentials)
+    credential: admin.credential.cert(credentials),
+    projectId: credentials.project_id
+
 });
 
 // Init the database 
 const db = admin.firestore();
 
-module.exports = { admin, db };
+export { crypto, admin, db };

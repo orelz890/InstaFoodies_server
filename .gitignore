@@ -1,2 +1,4 @@
 app.js
 server.js
+node_modules
+key.json

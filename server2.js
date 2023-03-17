@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
-const express = require('express')
-const { signupHendler, loginHendler, getUserHendler, patchUser, deleteObjectFromRefHendler } = require('./entryController')
+import express from 'express';
+import { signupHendler, loginHendler, getUserHendler, patchUser, deleteObjectFromRefHendler } from './entryController.js';
 
 const app = express()
 

@@ -1,18 +1,17 @@
-// include the express module using the require methood
-const express = require("express");
+// include the express module using the ES6 import syntax
+import express from 'express';
 const app = express();
 
-const admin = require("firebase-admin");
-/* Key that tells firebase that we are a reliable src
-   How to generate in firebase: 
-   Project settings -> Service accounts -> Generate new private key 
-                    -> open key.js file -> paste the key generated.
-*/
-const credentials = require("./key.json");
+import admin from 'firebase-admin';
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import credentials from './key.json' assert { type: "json" };
 
 // Init the application using the 'credentials
 admin.initializeApp({
-    credential: admin.credential.cert(credentials)
+    credential: admin.credential.cert(credentials),
+    projectId: credentials.project_id
+
 });
 
 // Init the database 
@@ -22,7 +21,6 @@ const db = admin.firestore();
 app.use(express.json());
 
 app.use(express.urlencoded({extended: true}));
-
 
 
 /**
