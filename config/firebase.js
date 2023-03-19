@@ -11,7 +11,7 @@ import crypto from 'crypto';
 import credentials from './key.json' assert { type: "json" };
 
 // Init the application using the 'credentials
-admin.initializeApp({
+const app = admin.initializeApp({
     credential: admin.credential.cert(credentials),
     projectId: credentials.project_id
 
@@ -20,4 +20,4 @@ admin.initializeApp({
 // Init the database 
 const db = admin.firestore();
 
-export { crypto, admin, db };
+export { app, crypto, admin, db };

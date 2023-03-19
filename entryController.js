@@ -1,117 +1,104 @@
-import { crypto, admin, db } from './config/firebase.js';
+import { app, crypto, admin, db } from './config/firebase.js';
 import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import bcrypt from 'bcryptjs';
+const saltRounds = 10;
+
+function comparePassword(password, hash) {
+    // Your code to compare the password hash with the entered password
+    // For example, you can use a library like bcryptjs to do this
+    // Here's an example using bcryptjs:
+
+    return bcrypt.compareSync(password, hash);
+  }
+
+  
+const signupHendler = async (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+    const name = req.body.name;
+
+    try{
+        const hash = await bcrypt.hash(password, saltRounds);
+        console.log("hash: " + hash + "\nsalt: " + saltRounds.toString())
+        // Make a new user (Authentication)
+        const userResponse = await admin.auth().createUser({
+            email: req.body.email,
+            password: req.body.password,
+            passwordHash: hash,
+            passwordSalt: saltRounds.toString(),
+            emailVerified: false,
+            disabled: false
+        });
+
+        const newUserJson = {
+            id: userResponse.uid,
+            name: name,
+            email: email,
+            passwordHash: hash
+        };
+
+        const id = email;
+        // Add the new user to the users doc in firestore
+        await db.collection("users").doc(id).set(newUserJson)
+        console.log("signup: Client " + id + " signed up");
+
+        // Return the new user JSON to the app
+        const userDoc = await db.collection("users").doc(id).get()
+        .then(doc => {
+            if (doc.exists) {
+                const jsonData = JSON.stringify(doc.data());
+                console.log(jsonData);
+                return res.status(200).send(jsonData);
+            } else {
+                console.log('signup: User not found!');
+                return res.status(400).send(null);
+            }
+        });
+
+    } catch (error) {
+        console.log('signup: Error:', error);
+        return res.status(400).send(error);
+    } 
+
+};
 
 const loginHendler = async (req, res) => {
 
     // This is the body of the request. We constructed an object from this data.
-    const id = req.body.email;
+    const email = req.body.email;
     const password = req.body.password;
-    const email = id;
+    const id = email;
 
-    const auth = getAuth();
+    // Return the new user JSON to the app
+    await db.collection("users").doc(id).get()
+    .then(doc => {
+        if (doc.exists) {
+            // Compare the password hash with the entered password
+            console.log("doc: "+ doc);
+            const userData = doc.data();
+            console.log("userData: "+ userData);
+            const hash = userData.passwordHash;
+            console.log("hash: "+ hash + "\npassword: " + password);
+            const isPasswordValid = comparePassword(password, hash);
+            if (isPasswordValid) {
+                console.log('Password is valid');
+                const jsonData = JSON.stringify(userData);
+                console.log(jsonData.id);
+                return res.status(200).send(jsonData);
+            } else {
+                console.log('Password is invalid');
+                return res.status(404).send(null);
+            }
+        } else {
+            console.log('User not found');
+            return res.status(404).send(null);
+        }
+    }).catch(error => {
+        console.log('login: Error found: ' + error);
+        return res.status(404).send(error);
 
-    signInWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-      // User signed in successfully
-      const user = userCredential.user;
-      console.log(user);
-    })
-    .catch((error) => {
-      // Handle sign-in errors here
-      console.error(error);
     });
 
-
-
-
-    // const auth = getAuth();
-    // try {
-    //     const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    //     const user = userCredential.user;
-    //     console.log("Signed in user:", user.uid);
-    //     // Add your logic for handling a successful sign-in here
-    //   } catch (error) {
-    //     console.log("Error signing in user:", error);
-    //     // Add your logic for handling a failed sign-in here
-    //   }
-
-
-
-    // try {
-    //     // const { email, password } = req.body;
-    //     const userRecord = await admin.auth().getUserByEmail(email);
-    //     const uid = userRecord.uid;
-    //     const hashedPassword = userRecord.customClaims?.hashedPassword;
-    //     const salt = userRecord.customClaims?.salt;
-    //     const passwordWithSalt = password + salt;
-    //     const hash = crypto.createHash('sha256').update(passwordWithSalt).digest('hex');
-        
-    //     if (hashedPassword === hash) {
-    //       console.log('User is authenticated.');
-    //       // return a success response to the client
-    //       return res.status(200).json({ message: 'User is authenticated.' });
-    //     } else {
-    //       console.log('Invalid email or password.');
-    //       // return an error response to the client
-    //       return res.status(401).json({ message: 'Invalid email or password.' });
-    //     }
-    //   } catch (error) {
-    //     console.log(`Error verifying user: ${error}`);
-    //     // return an error response to the client
-    //     return res.status(500).json({ message: 'Error verifying user.' });
-    //   }
-
-
-
-
-
-
-
-
-    // admin.auth().getUserByEmail(id)
-    // .then((userRecord) => {
-    //     // User is found, verify their password
-    //     const uid = userRecord.uid;
-    //     const hashedPassword = userRecord.customClaims && userRecord.customClaims.hashedPassword;
-    //     const salt = userRecord.customClaims && userRecord.customClaims.salt;
-    //     const passwordWithSalt = password + salt;
-    
-    //     const hash = crypto.createHash('sha256');
-    //     hash.update(passwordWithSalt);
-    
-    //     if (hashedPassword === hash.digest('hex')) {
-    //       // Passwords match, user is authenticated
-    //       console.log('User is authenticated.');
-    //     } else {
-    //       // Passwords do not match, user is not authenticated
-    //       console.log('Invalid email or password.');
-    //     }
-    //   })
-    //   .catch((error) => {
-    //     // Handle errors
-    //     console.log(`Error verifying user: ${error}`);
-    //   });
-
-
-
-    // console.log("email: "+ (await admin.auth().getUserByEmail(id)).email);
-    // // Adding this user to our database
-    // const user = db.collection("users").doc(id).get()
-    // .then(doc => {
-    //     if (doc.exists) {
-    //         const jsonData = JSON.stringify(doc.data());
-    //         console.log(jsonData);
-    //         return res.status(200).send(jsonData);
-
-    //     } else {
-    //         console.log('login: Document not found!');
-    //         return res.status(400).send(null);
-    //     }
-    // }).catch(error => {
-    //     console.log('login: Error getting document:', error);
-    //     return res.status(400).send(error);
-
-    // });
 };
 
 
@@ -149,54 +136,6 @@ const loginHendler = async (req, res) => {
 // };
 
 
-const signupHendler = async (req, res) => {
-    const id = req.body.email;
-
-    // Make a new user (Authentication)
-        const userResponse = await admin.auth().createUser({
-        email: req.body.email,
-        password: req.body.password,
-        emailVerified: false,
-        disabled: false
-        
-    })
-    .then(doc => {
-        const newUserJson = {
-            name: "baruch",
-            email: id
-        };
-
-        // Add the new user to the users doc in firestore
-        db.collection("users").doc(id).set(newUserJson)
-        .then(doc2 => {
-            console.log("signup: Client " + id + " signed up");
-            // Return the new user json to the app
-            db.collection("users").doc(id).get()
-            .then(userDoc => {
-                if (userDoc.exists) {
-                    const jsonData = JSON.stringify(userDoc.data());
-                    console.log(jsonData);
-                    return res.status(200).send(jsonData);
-                }else {
-                    console.log('signup: user not found!');
-                    return res.status(400).send(null);
-                }
-            }).catch(error => {
-                console.log('signup: Error getting document:', error);
-                return res.status(400).send(error);
-            });
-        }).catch(error => {
-            console.log('signup: Set Document was unsuccessful!', error);
-            return res.status(400).send(error);
-    
-        });
-    }).catch(error => {
-        console.log('signup: Error signup:', error);
-        return res.status(400).send(error);
-
-    });
-};
-
 
 
 
@@ -228,28 +167,41 @@ const getUserHendler = async (req, res) => {
 
 const patchUser = async (req, res) => {
     
-    const { body, params: {email}} = req;
-    const { name } = body;
+    const { body, params: { email }} = req;
+    const { uid, name, password } = body;
     const id = email;
     console.log("in patchUser: " + email);
+    const hash = await bcrypt.hash(password, saltRounds);
 
     const newUserJson = {
-        name: name
+        name: name,
+        id: uid,
+        email: email,
+        passwordHash: hash
     };
 
     console.log("in patchUser");
 
-    await db.collection("users").doc(id).update(newUserJson)
-    .then(() => {
-        console.log("patchUser: Successfully updated user- {" + id + "}");
-        return res.status(200).send();
+    await admin.auth().updateUser(uid, {password: password})
+    .then(function(userRecord) {
+        db.collection("users").doc(id).update(newUserJson)
+        .then(() => {
+            console.log("patchUser: Successfully updated user- {" + id + "}");
+            return res.status(200).send();
+        })
+        .catch((error) => {
+            console.log("patchUser: Failed to update user- {" + id + "}");
+            return res.status(400).send(error);
+        });
+         // See the UserRecord reference doc for the contents of userRecord.
+         console.log("Successfully updated user", userRecord.toJSON());
     })
-    .catch((error) => {
-        console.log("patchUser: Failed to update user- {" + id + "}");
-        return res.status(400).send(error);
+    .catch(function(error) {
+    console.log("Error updating user:", error);
     });
-};
+ 
 
+};
 
 
 const deleteObjectFromRefHendler = async (req, res) => {
@@ -258,15 +210,34 @@ const deleteObjectFromRefHendler = async (req, res) => {
     const id = email; // get the ID of the document to delete
     console.log('ref = ' + ref + ', id = ' + id);
 
-    await db.collection(ref).doc(id).delete()
-      .then(() => {
-        console.log('Document deleted successfully');
-        return res.status(200).send();
-      })
-      .catch((error) => {
-        console.error(error);
-        return res.status(400).send();
-      });
+    db.collection("users").doc(id).get()
+    .then(doc => {
+        if (doc.exists){
+        const uid = doc.data().id;
+        admin.auth().deleteUser(uid)
+        .then(() => {
+            db.collection(ref).doc(id).delete()
+            .then(() => {
+                console.log('Document deleted successfully');
+                return res.status(200).send();
+            })
+            .catch((error) => {
+                console.log("patchUser: Failed to delete from users tree",error);
+                return res.status(400).send();
+            });
+        })
+        .catch((error) => {
+            console.log("patchUser: Failed to delete from auth", error);
+            return res.status(400).send(error);
+        })
+
+        }
+    })
+    .catch((error) => {
+        console.log("patchUser: Failed to get the user");
+        return res.status(400).send(error);
+    });
+
   };
 
   export {signupHendler, loginHendler, getUserHendler, patchUser, deleteObjectFromRefHendler};
