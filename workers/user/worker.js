@@ -2,6 +2,12 @@ import { parentPort, workerData } from 'worker_threads';
 import { app, admin, db } from '../../config/firebase.js';
 import bcrypt from'bcryptjs';
 
+// import List from 'collections/list'
+import HashMap from 'hashmap'
+import collections from 'collections';
+const { Queue, List } = collections;
+
+
 const saltRounds = 10;
 
 function comparePassword(password, hash) {
@@ -15,6 +21,7 @@ function comparePassword(password, hash) {
 const signup = async (taskData) => {
     console.log("im in signup!!");
     try {
+
         const { email, name, password } = taskData;
 
         // Make a new user (Authentication)
@@ -25,6 +32,7 @@ const signup = async (taskData) => {
             disabled: false
         });
         const hash = await bcrypt.hash(password, saltRounds);
+        console.log("signup:\npass= " + password +  " ,type= "+ password.type + ", len= " + password.length +  "\nhash= " + hash + ", type=" + hash.type + ", len= " + hash.length);
 
         const newUserJson = {
             id: userResponse.uid,
@@ -45,10 +53,12 @@ const signup = async (taskData) => {
             console.log(jsonData);
             parentPort.postMessage({ success: true, data: jsonData });
         } else {
+            deleteUser(taskData);
             console.log('signup: User not found!');
             parentPort.postMessage({ success: false, error: 'Document not found!' });
         }
     } catch (error) {
+        deleteUser(taskData);
         console.log('signup: Error:', error);
         parentPort.postMessage({ success: false, error: error });
     }
@@ -58,7 +68,7 @@ const login = async (taskData) => {
     // This is the body of the request. We constructed an object from this data.
     const { email, password } = taskData;
     const id = email;
-
+    
     // Return the new user JSON to the app
     await db.collection("users").doc(id).get()
     .then(doc => {
@@ -66,10 +76,11 @@ const login = async (taskData) => {
             // Compare the password hash with the entered password
             console.log("doc: " + doc);
             const userData = doc.data();
-            console.log("userData: "+ userData);
-            const hash = userData.passwordHash;
-            console.log("hash: "+ hash + "\npassword: " + password);
-            const isPasswordValid = comparePassword(password, hash);
+            console.log("userData: "+ userData.passwordHash);
+            const realHash = userData.passwordHash;
+            console.log("hash: "+ realHash + "\npassword: " + password + "\npassLen = " + password.length);
+
+            const isPasswordValid = comparePassword(password, realHash);
             if (isPasswordValid) {
                 console.log('Password is valid');
                 const jsonData = JSON.stringify(userData);
@@ -91,18 +102,25 @@ const login = async (taskData) => {
 
 
 const patchUser = async (taskData) => {
-    const { uid, email, name, password } = taskData;
-    const id = email;
+
+    const { uid, email, password } = taskData;
 
     console.log("in patchUser: " + email);
     const hash = await bcrypt.hash(password, saltRounds);
 
     const newUserJson = {
-        name: name,
+        name: taskData.name || "",
         id: uid,
         email: email,
-        passwordHash: hash
+        passwordHash: hash,
+        isBusiness: taskData.isBusiness || false,
+        followers: taskData.followers || null,
+        following: taskData.following || null,
+        Cart: taskData.Cart || null,
+        Likes: taskData.Likes || null,
+        myPosts: taskData.myPosts || null,
     };
+    const id = email;
 
     console.log("in patchUser");
 
@@ -131,37 +149,38 @@ const patchUser = async (taskData) => {
 
 
 const deleteUser = async (taskData) => {
-    const { ref, email} = taskData;
+    const {email} = taskData;
 
     console.log("im in delete");
     const id = email; // get the ID of the document to delete
-    console.log('ref = ' + ref + ', id = ' + id);
+    console.log(', id = ' + id);
 
     db.collection("users").doc(id).get()
     .then(doc => {
         if (doc.exists){
-        const uid = doc.data().id;
-        admin.auth().deleteUser(uid)
-        .then(() => {
-            db.collection(ref).doc(id).delete()
+            const uid = doc.data().id;
+            admin.auth().deleteUser(uid)
             .then(() => {
-                console.log('Document deleted successfully');
-                parentPort.postMessage({ success: true, data: 'Document deleted successfully'});
+                db.collection("users").doc(id).delete()
+                .then(() => {
+                    console.log('Document deleted successfully');
+                    parentPort.postMessage({ success: true, data: 'Document deleted successfully'});
+                })
+                .catch((error) => {
+                    console.log("deleteUser: Failed to delete from users tree",error);
+                    parentPort.postMessage({ success: false, error: "Failed to delete user from users tree: " + error });
+                });
             })
             .catch((error) => {
-                console.log("patchUser: Failed to delete from users tree",error);
-                parentPort.postMessage({ success: false, error: "Failed to delete user from users tree: " + error });
-            });
-        })
-        .catch((error) => {
-            console.log("patchUser: Failed to delete from auth", error);
-            parentPort.postMessage({ success: false, error: "Failed to delete user from auth: " + error });
-        })
-
+                console.log("deleteUser: Failed to delete from auth", error);
+                parentPort.postMessage({ success: false, error: "Failed to delete user from auth: " + error });
+            })
+        }else{
+            console.log("deleteUser: User dont exist", error);
         }
     })
     .catch((error) => {
-        console.log("patchUser: Failed to get the user");
+        console.log("deleteUser: Failed to get the user");
         parentPort.postMessage({ success: false, error: "Failed to get the user: " + error });
     });    
 }

@@ -60,12 +60,11 @@ const signupHendler = async (req, res) => {
     console.log("im in signupHendler")
     const taskData = {
         work: SIGNUP,
-        email: req.body.email,
-        password: req.body.password,
-        name: req.body.name,
+        email: String(req.body.email),
+        password: String(req.body.password),
+        name: String(req.body.name)
     };
     addTask(taskData, res);
-
 
 };
 
@@ -73,8 +72,8 @@ const loginHendler = async (req, res) => {
 
     const taskData = {
         work: LOGIN,
-        email: req.body.email,
-        password: req.body.password,
+        email: String(req.body.email),
+        password: String(req.body.password)
     };
     addTask(taskData, res);
 
@@ -100,7 +99,6 @@ const getUserHendler = async (req, res) => {
     }).catch(error => {
         console.log('getUser: Error getting document:', error);
         return res.status(400).send(error);
-
     });
 };
 
@@ -109,10 +107,16 @@ const patchUser = async (req, res) => {
 
     const taskData = {
         work: PATCH,
-        uid: req.body.uid,
+        uid: String(req.body.uid),
         name: req.body.name,
-        email: req.body.email,
-        password: req.body.password,
+        email: String(req.body.email),
+        password: String(req.body.password),
+        isBusiness: req.body.isBusiness || false,
+        followers: req.body.followers || null,
+        following: req.body.following || null,
+        Cart: req.body.Cart || null,
+        Likes: req.body.Likes || null,
+        myPosts: req.body.myPosts || null,
     };
     addTask(taskData, res);
  
@@ -123,11 +127,9 @@ const deleteObjectFromRefHendler = async (req, res) => {
     console.log("ref == " + req.params.ref);
     const taskData = {
         work: DELETE,
-        ref: req.params.ref,
-        email: req.params.email,
+        email: req.params.email
     };
     addTask(taskData, res);
-
   };
 
  
