@@ -128,6 +128,7 @@ const patchUser = async (taskData) => {
             Cart: taskData.Cart || null,
             Likes: taskData.Likes || null,
             myPosts: taskData.myPosts || null,
+            myRecipePosts: taskData.myRecipePosts || null
         };
         const id = email;
 

@@ -117,6 +117,7 @@ const patchUser = async (req, res) => {
         Cart: req.body.Cart || null,
         Likes: req.body.Likes || null,
         myPosts: req.body.myPosts || null,
+        myRecipePosts: req.body.myRecipePosts || null
     };
     addTask(taskData, res);
  
