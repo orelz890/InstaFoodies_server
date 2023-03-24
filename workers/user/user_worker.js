@@ -47,7 +47,7 @@ class user_worker {
             this.res.status(200).send(result.data);
         }
         else {
-            this.res.status(200).send(result.error);
+            this.res.status(400).send(result.error);
         }
         // this.taskData.callback(result);
     }
