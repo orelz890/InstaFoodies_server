@@ -110,7 +110,7 @@ const patchUser = async (req, res) => {
         uid: String(req.body.uid),
         name: req.body.name,
         email: String(req.body.email),
-        password: String(req.body.password),
+        // password: String(req.body.password),
         isBusiness: req.body.isBusiness || false,
         followers: req.body.followers || null,
         following: req.body.following || null,

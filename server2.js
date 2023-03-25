@@ -25,6 +25,7 @@ app.post('/signup', signupHendler)
 /**
  * Loging in if user exists
  * @param email the only {@code string}
+ * @param password the second {@code string}
  * @returns User {@code json}
  */
 app.post('/login', loginHendler)
@@ -44,7 +45,7 @@ app.get('/getUser/:email', getUserHendler)
  * @body map {@code Map<String, String>}
  * @returns Void
  */
-app.patch('/patchUser/:email', patchUser)
+app.patch('/patchUser', patchUser)
 
 
 /**

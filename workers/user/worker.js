@@ -1,6 +1,7 @@
 import { parentPort, workerData } from 'worker_threads';
 import { app, admin, db } from '../../config/firebase.js';
 import bcrypt from'bcryptjs';
+import { getAuth, sendSignInLinkToEmail } from "firebase/auth";
 
 // import List from 'collections/list'
 import HashMap from 'hashmap'
@@ -18,7 +19,55 @@ function comparePassword(password, hash) {
     return bcrypt.compareSync(password, hash);
 }
 
+
+function deleteUserAuth(uid){
+    admin.auth().deleteUser(uid)
+    .then(() => {
+        console.log("deleteUserAuth: deleted");
+    })
+    .catch((error) => {
+        console.log("deleteUserAuth: Failed to delete from auth", error);
+        parentPort.postMessage({ success: false, error: "Failed to delete user from auth: " + error });
+    })
+}
+
+
 const signup = async (taskData) => {
+    // const { email, name, password } = taskData;
+    // const actionCodeSettings = {
+    //     // URL you want to redirect back to. The domain (www.example.com) for this
+    //     // URL must be in the authorized domains list in the Firebase Console.
+    //     url: 'https://www.example.com/finishSignUp?cartId=1234',
+    //     // This must be true.
+    //     handleCodeInApp: true,
+    //     iOS: {
+    //         bundleId: 'com.example.ios'
+    //       },
+    //     android: {
+    //       packageName: 'com.example.instafoodies',
+    //       installApp: true,
+    //       minimumVersion: '12'
+    //     },
+    //     // dynamicLinkDomain: 'example.page.link'
+    //   };
+
+    //   sendSignInLinkToEmail(admin.auth(), 'orelzx13@gmail.com', actionCodeSettings)
+    //     .then(() => {
+    //       // The link was successfully sent. Inform the user.
+    //       // Save the email locally so you don't need to ask the user for it again
+    //       // if they open the link on the same device.
+    //       window.localStorage.setItem('emailForSignIn', email);
+    //       console.log("im here1");
+    //       // ...
+    //     })
+    //     .catch((error) => {
+    //       const errorCode = error.code;
+    //       const errorMessage = error.message;
+    //       console.log("error: " , errorCode, errorMessage);
+
+    //       // ...
+    //     });
+
     try {
         console.log("im in signup!!");
         const { email, name, password } = taskData;
@@ -30,6 +79,7 @@ const signup = async (taskData) => {
             emailVerified: false,
             disabled: false
         }).then(async userResponse => {
+
             const hash = await bcrypt.hash(password, saltRounds);
             console.log("signup:\npass= " + password +  " ,type= "+ password.type + ", len= " + password.length +  "\nhash= " + hash + ", type=" + hash.type + ", len= " + hash.length);
     
@@ -46,16 +96,22 @@ const signup = async (taskData) => {
             console.log("signup: Client " + id + " signed up");
     
             // Return the new user JSON to the app
-            const userDoc = await db.collection("users").doc(id).get();
-            if (userDoc.exists) {
-                const jsonData = JSON.stringify(userDoc.data());
-                console.log(jsonData);
-                parentPort.postMessage({ success: true, data: jsonData });
-            } else {
-                deleteUser(taskData);
-                console.log('signup: User not found!');
-                parentPort.postMessage({ success: false, error: 'Document not found!' });
-            }
+            await db.collection("users").doc(id).get()
+            .then(userDoc => {
+                if (userDoc.exists) {
+                    const jsonData = JSON.stringify(userDoc.data());
+                    console.log(jsonData);
+                    parentPort.postMessage({ success: true, data: jsonData });
+                } else {
+                    deleteUserAuth(userResponse.uid);
+                    console.log('signup: User not found!');
+                    parentPort.postMessage({ success: false, error: 'Document not found!' });
+                }
+            }).catch(error =>{
+                deleteUserAuth(userResponse.uid);
+                console.log('signup: not able to signup set didnt work:', error);
+                parentPort.postMessage({ success: false, error: 'Not able to signup try again with diffrent Credentials'});    
+            });
         }).catch(error => {
             console.log('signup: not able to signup:', error);
             parentPort.postMessage({ success: false, error: 'Not able to signup try again with diffrent Credentials'});
@@ -115,13 +171,13 @@ const patchUser = async (taskData) => {
         const { uid, email, password } = taskData;
 
         console.log("in patchUser: " + email);
-        const hash = await bcrypt.hash(password, saltRounds);
+        // const hash = await bcrypt.hash(password, saltRounds);
 
         const newUserJson = {
             name: taskData.name || "",
             id: uid,
             email: email,
-            passwordHash: hash,
+            // passwordHash: hash,
             isBusiness: taskData.isBusiness || false,
             followers: taskData.followers || null,
             following: taskData.following || null,
@@ -199,6 +255,7 @@ const deleteUser = async (taskData) => {
         parentPort.postMessage({ success: false, error: "Failed to get the user: " + error });
     });    
 }
+
 
 
 // Message handler
