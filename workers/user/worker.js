@@ -9,6 +9,8 @@ import collections from 'collections';
 const { Queue, List } = collections;
 
 
+// const int32Array = new Int32Array(new SharedArrayBuffer(4));
+
 const saltRounds = 10;
 
 function comparePassword(password, hash) {
@@ -33,40 +35,6 @@ function deleteUserAuth(uid){
 
 
 const signup = async (taskData) => {
-    // const { email, name, password } = taskData;
-    // const actionCodeSettings = {
-    //     // URL you want to redirect back to. The domain (www.example.com) for this
-    //     // URL must be in the authorized domains list in the Firebase Console.
-    //     url: 'https://www.example.com/finishSignUp?cartId=1234',
-    //     // This must be true.
-    //     handleCodeInApp: true,
-    //     iOS: {
-    //         bundleId: 'com.example.ios'
-    //       },
-    //     android: {
-    //       packageName: 'com.example.instafoodies',
-    //       installApp: true,
-    //       minimumVersion: '12'
-    //     },
-    //     // dynamicLinkDomain: 'example.page.link'
-    //   };
-
-    //   sendSignInLinkToEmail(admin.auth(), 'orelzx13@gmail.com', actionCodeSettings)
-    //     .then(() => {
-    //       // The link was successfully sent. Inform the user.
-    //       // Save the email locally so you don't need to ask the user for it again
-    //       // if they open the link on the same device.
-    //       window.localStorage.setItem('emailForSignIn', email);
-    //       console.log("im here1");
-    //       // ...
-    //     })
-    //     .catch((error) => {
-    //       const errorCode = error.code;
-    //       const errorMessage = error.message;
-    //       console.log("error: " , errorCode, errorMessage);
-
-    //       // ...
-    //     });
 
     try {
         console.log("im in signup!!");
@@ -257,10 +225,15 @@ const deleteUser = async (taskData) => {
 }
 
 
+while (true) {
+    // Wait for a message to be received (sleep until then)
+    const message = await new Promise(resolve => {
+      parentPort.once('message', resolve);
+    });
 
-// Message handler
-parentPort.on('message', async (message) => {
-    console.log(" im in the worker Message handler and i need to heandle: " + message.data.work)
+    // Process the message
+    console.log(`Worker received message: ${message.type}`);
+
     try {
       let result;
       switch (message.type) {
@@ -282,4 +255,33 @@ parentPort.on('message', async (message) => {
     } catch (err) {
         console.log("user_worker: Error in the switch: " + err);
     }
-  });
+  }
+
+
+// ================ Working but not sleeping until there is work ========
+// // Message handler
+// parentPort.on('message', async (message) => {
+//     console.log(" im in the worker Message handler and i need to heandle: " + message.data.work)
+//     try {
+//       let result;
+//       switch (message.type) {
+//         case 'signup':
+//           result = await signup(message.data);
+//           break;
+//         case 'login':
+//           result = await login(message.data);
+//           break;
+//         case 'patchUser':
+//           result = await patchUser(message.data);
+//           break;
+//         case 'deleteUser':
+//           result = await deleteUser(message.data);
+//           break;
+//         default:
+//           break;
+//       }
+//     } catch (err) {
+//         console.log("user_worker: Error in the switch: " + err);
+//     }
+    
+//   });

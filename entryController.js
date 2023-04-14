@@ -11,7 +11,8 @@ const PATCH = 2;
 const DELETE = 3;
 
 
-const NUM_WORKERS = 4;
+const NUM_WORKERS = 3;
+const MAX_QUEUE_SIZE = 1000;
 
 // Create a pool of workers
 const workers = [];
@@ -29,7 +30,13 @@ function addTask(taskData, res) {
         taskData: taskData,
         res: res
     }
-  taskQueue.push(task);
+    if (taskQueue.length < MAX_QUEUE_SIZE) {
+        taskQueue.push(task);
+    }
+    else {
+        // Send a 503 (Service Unavailable) response to indicate that the server is busy
+        res.status(503).send("Server is busy, please try again later.");
+    }
 }
 
 // Process the task queue

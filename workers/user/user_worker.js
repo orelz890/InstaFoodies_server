@@ -1,4 +1,5 @@
 import { Worker, isMainThread, workerData } from 'worker_threads';
+// import { notify } from './worker';
 
 const SIGNUP = 0;
 const LOGIN = 1;
@@ -17,6 +18,7 @@ class user_worker {
   
     // Assign a task to the worker
     assignTask(taskData, res) {
+        
         this.isIdle = false;
         console.log("im in assignTask with this task: " + taskData.work);
         this.res = res;
