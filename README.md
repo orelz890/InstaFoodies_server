@@ -20,10 +20,12 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
         ...
     }
     in the package.json file)
+ 
 8. Generate new private key that tells firebase that we are a reliable src
    (How to generate in firebase: 
    Project settings -> Service accounts -> Generate new private key 
                     -> open key.js file -> paste the key generated).
+9. To install nginx (web server similar to apache): sudo apt install nginx
 
 ***Run:***
 
@@ -32,6 +34,18 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
 
 ***Without nodemon**
 1. Copy this to the terminal: node .\server2.js
+
+***Without pm2**
+* Link for more details: https://www.youtube.com/watch?v=oykl1Ih9pMg&list=PLatLJHenaEliXO6AVHwu_5nejsebpNFfB&index=5
+* Use pm2 (process manager) if you want to run the server in the background and ensure that it automatically restarts in case of any errors or crashes.
+1. First, copy this to your terminal: npm install -g pm2
+2. Copy this to the terminal: pm2 start server2.js
+3. More command u should know:
+     pm2 status - will show u all the apps that are running
+     pm2 restart server2.js
+     pm2 stop server2.js
+     pm2 logs - will show all the console.logs
+     pm2 flush - clears the logs
 
 
 ## Useful sources

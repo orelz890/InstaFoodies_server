@@ -4,14 +4,16 @@ import bcrypt from 'bcryptjs';
 import { Worker, isMainThread, workerData } from 'worker_threads';
 import Joi from 'joi';
 import { user_worker } from './workers/user/user_worker.js';
+import os from 'os';
+
 const saltRounds = 10;
 const SIGNUP = 0;
 const LOGIN = 1;
 const PATCH = 2;
 const DELETE = 3;
 
-
-const NUM_WORKERS = 3;
+const NUM_CPUS = os.cpus().length;
+const NUM_WORKERS = NUM_CPUS - 3;
 const MAX_QUEUE_SIZE = 1000;
 
 // Create a pool of workers
@@ -58,7 +60,14 @@ function processTaskQueue() {
   }
 }
 
-// Start processing the task queue
+
+/* 
+By setting up this timer, the function is executed periodically, ensuring 
+that tasks are processed and completed in a timely and efficient manner.
+Without this timer, the task queue would not be processed unless a new task
+is added to the queue. As a result, tasks could potentially wait in the 
+queue for a long time, causing delays and increasing the server's response time.
+*/ 
 setInterval(processTaskQueue, 100);
 
 

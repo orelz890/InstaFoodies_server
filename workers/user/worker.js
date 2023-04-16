@@ -13,6 +13,8 @@ const { Queue, List } = collections;
 
 const saltRounds = 10;
 
+// function verifyUser(password, hash) {}
+
 function comparePassword(password, hash) {
     // Your code to compare the password hash with the entered password
     // For example, you can use a library like bcryptjs to do this
@@ -261,7 +263,7 @@ while (true) {
 // ================ Working but not sleeping until there is work ========
 // // Message handler
 // parentPort.on('message', async (message) => {
-//     console.log(" im in the worker Message handler and i need to heandle: " + message.data.work)
+//     console.log(" im in the worker Message handler and i need to heandle: " + message.data.work) 
 //     try {
 //       let result;
 //       switch (message.type) {
