@@ -9,7 +9,7 @@ const DELETE = 3;
 // Worker class
 class user_worker {
     constructor() {
-        this.worker = new Worker('./workers/user/worker.js');
+        this.worker = new Worker('./workers/worker.js');
         this.isIdle = true;
         this.taskData = null;
         this.res = null;

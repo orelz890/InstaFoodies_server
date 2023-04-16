@@ -3,7 +3,7 @@ import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import bcrypt from 'bcryptjs';
 import { Worker, isMainThread, workerData } from 'worker_threads';
 import Joi from 'joi';
-import { user_worker } from './workers/user/user_worker.js';
+import { user_worker } from './workers/user_worker.js';
 import os from 'os';
 
 const saltRounds = 10;

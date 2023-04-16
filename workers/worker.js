@@ -1,5 +1,5 @@
 import { parentPort, workerData } from 'worker_threads';
-import { app, admin, db } from '../../config/firebase.js';
+import { app, admin, db } from '../config/firebase.js';
 import bcrypt from'bcryptjs';
 import { getAuth, sendSignInLinkToEmail } from "firebase/auth";
 
