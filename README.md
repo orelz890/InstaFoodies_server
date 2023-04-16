@@ -16,7 +16,7 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
 7. Copy this to the terminal: npm install express firebase-auth firebase firebase-admin nodemon
    (nodemon - keeps the server running. It takes the changes we make to the server so we wont have to stop. In order for this to work add this:
     "scripts": {
-        "start": "nodemon server2.js",
+        "start": "nodemon server.js",
         ...
     }
     in the package.json file)
@@ -33,17 +33,17 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
 1. Copy this to the terminal: npm start
 
 ***Without nodemon**
-1. Copy this to the terminal: node .\server2.js
+1. Copy this to the terminal: node .\server.js
 
 ***Without pm2**
 * Link for more details: https://www.youtube.com/watch?v=oykl1Ih9pMg&list=PLatLJHenaEliXO6AVHwu_5nejsebpNFfB&index=5
 * Use pm2 (process manager) if you want to run the server in the background and ensure that it automatically restarts in case of any errors or crashes.
 1. First, copy this to your terminal: npm install -g pm2
-2. Copy this to the terminal: pm2 start server2.js
+2. Copy this to the terminal: pm2 start server.js
 3. More command u should know:
      pm2 status - will show u all the apps that are running
-     pm2 restart server2.js
-     pm2 stop server2.js
+     pm2 restart server.js
+     pm2 stop server.js
      pm2 logs - will show all the console.logs
      pm2 flush - clears the logs
 

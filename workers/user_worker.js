@@ -39,7 +39,6 @@ class user_worker {
             default:
                 break;
         }
-        
     }
 
     // Handle the message from the worker
