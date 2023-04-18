@@ -43,13 +43,14 @@ class user_worker {
 
     // Handle the message from the worker
     handleMessage(result) {
-        this.isIdle = true;
         if(result.success){
             this.res.status(200).send(result.data);
         }
         else {
             this.res.status(400).send(result.error);
         }
+        this.isIdle = true;
+
         // this.taskData.callback(result);
     }
 }

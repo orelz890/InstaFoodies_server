@@ -25,7 +25,18 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
    (How to generate in firebase: 
    Project settings -> Service accounts -> Generate new private key 
                     -> open key.js file -> paste the key generated).
-9. To install nginx (web server similar to apache): sudo apt install nginx
+9. To install nginx (web server similar to apache):
+    ubuntu: sudo apt install nginx
+    windows: https://www.youtube.com/watch?v=3-3o3Yz4GvY
+    Nginx full tutorial: https://www.youtube.com/watch?v=5PrT5uKszQo
+10. How to use nginx as a load balancer:
+    https://www.youtube.com/watch?v=2X4ZO5tO7Co&list=PLaiZP3KJsJOoFP4JwV_GlRfjmz-w54d1K&index=4
+    In general: 
+        * Check if nginx.conf is ok: nginx -t
+        * Start nginx: start nginx
+        * Reload nginx: nginx -s reload
+
+
 
 ***Run:***
 
@@ -46,6 +57,19 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
      pm2 stop server.js
      pm2 logs - will show all the console.logs
      pm2 flush - clears the logs
+4. This script: powershell -ExecutionPolicy Bypass
+5. In order to run multiple servers you need to listen in diffrent ports:
+    First, install: 
+        npm install --save-dev cross-env
+    Then, enter this line: 
+        npx cross-env PORT=3000 pm2 start --name server1 server.js
+        with diffrent ports for each server ypu open.
+guide: https://www.youtube.com/watch?v=14zY-u9EBCU
+6. Enter: pm2 save
+
+
+
+ will allow you to run scripts without changing the system's execution policy permanently if needed.
 
 
 ## Useful sources

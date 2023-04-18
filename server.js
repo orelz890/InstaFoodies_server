@@ -61,6 +61,8 @@ app.delete('/deleteObjectFromRef/:ref/:email', deleteObjectFromRefHendler)
    If planning to deploy this app to cloud application some times the port is not 8080 by defualt so it will take whatever port that is open for there case.
 */
 const PORT = process.env.PORT || 8080;
+console.log("port=" + PORT);
+console.log("ENVport=" + process.env.PORT);
 app.listen(PORT, () => {
     console.log("Server is running on PORT " + PORT + ".");
 });
