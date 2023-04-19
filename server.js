@@ -1,13 +1,67 @@
 // using the express module as our server using the require methood
 import express from 'express';
 import { signupHendler, loginHendler, getUserHendler, patchUser, deleteObjectFromRefHendler } from './entryController.js';
+import morgan from 'morgan';
+import apicache from 'apicache';
 
 const app = express()
+
+// Initialize apicache middleware with options
+const options = {
+    defaultDuration: '1 hour',
+    enabled: true,
+    statusCodes: {
+      include: [200, 201, 202, 203, 204, 205, 206, 207, 208, 226, 304],
+    },
+    headers: {
+      'cache-control': 'no-cache',
+    },
+    afterHit: (req, res, key, hit) => {
+      console.log('Cache hit for key', key);
+    },
+  };
+
+// const cache = apicache.middleware(options);
+const cache = apicache.options(options).middleware;
+
 
 // POST will have a body of type json so we need to enable json in express.
 app.use(express.json());
 
 app.use(express.urlencoded({extended: true}));
+
+app.use(morgan('dev'));
+
+
+
+/**
+ * Middleware function to check if a cached response can be returned.
+ * @param req Request object
+ * @param res Response object
+ * @param next Next middleware function
+ */
+const checkCache = (req, res, next) => {
+    const index = apicache.getIndex();
+    if(index instanceof Map){
+        console.log("index= " + index + '\n');
+        const cachedResponse= index.get(req.originalUrl);
+        if (cachedResponse) {
+          // Check if cached response has been modified
+          const lastModified = new Date(cachedResponse['Last-Modified']);
+          const ifModifiedSince = new Date(req.headers['if-modified-since']);
+          if (!isNaN(ifModifiedSince) && lastModified <= ifModifiedSince) {
+            // Response has not been modified, return 304 Not Modified
+            return res.status(304).send();
+          }
+          res.set(cachedResponse.headers);
+          res.send(cachedResponse.body);
+        } else {
+          next();
+        }
+    }
+    next();
+  };
+
 
 
 /**
@@ -28,7 +82,7 @@ app.post('/signup', signupHendler)
  * @param password the second {@code string}
  * @returns User {@code json}
  */
-app.post('/login', loginHendler)
+app.post('/login', cache('1 minute') , checkCache, loginHendler);
 
 
 /**
@@ -36,7 +90,7 @@ app.post('/login', loginHendler)
  * @param email {@code string}
  * @returns User {@code json}
  */
-app.get('/getUser/:email', getUserHendler)
+app.get('/getUser/:email', cache('15 second') ,  checkCache, getUserHendler);
 
 
 /**
