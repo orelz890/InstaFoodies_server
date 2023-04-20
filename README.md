@@ -1,13 +1,18 @@
 # Node.js server for our InstaFoodies app
 
-
+<!-- Working on linux is prefered -->
 ### How to run:
 
 ***Preparation:***
 
 
 You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03UM
-1. Install node.js on your computer: https://nodejs.org/en/
+0. install npm: npm install -g npm
+1. Install node.js on your computer:
+    windows: https://nodejs.org/en/
+    ubuntu: sudo npm cache clean -f
+            sudo npm install -g n
+            sudo n latest
 2. Open a folder for the server
 3. Clone the project there
 4. Enter the folder in the terminal
