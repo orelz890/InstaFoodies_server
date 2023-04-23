@@ -339,10 +339,10 @@ const deleteUser = async (taskData) => {
     console.log(', id = ' + id);
 
     db.collection("users").doc(id).get()
-    .then(doc => {
+    .then(async doc => {
         if (doc.exists){
-            const uid = doc.data().id;
-            admin.auth().deleteUser(uid)
+            const uid = doc.data().user_id;
+            await admin.auth().deleteUser(uid)
             .then(() => {
                 db.collection("users").doc(id).delete()
                 .then(async () => {
