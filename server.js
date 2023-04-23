@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import { signupHendler, loginHendler, getUserHendler, patchUser, deleteObjectFromRefHendler } from './entryController.js';
+import { signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -82,7 +82,7 @@ app.post('/signup', signupHendler)
  * @param password the second {@code string}
  * @returns User {@code json}
  */
-app.post('/login', cache('1 minute') , checkCache, loginHendler);
+app.post('/login', cache('1 second') , checkCache, loginHendler);
 
 
 /**
@@ -90,8 +90,18 @@ app.post('/login', cache('1 minute') , checkCache, loginHendler);
  * @param email {@code string}
  * @returns User {@code json}
  */
-app.get('/getUser/:email', cache('15 second') ,  checkCache, getUserHendler);
+app.get('/getUser/:email', (req, res) => {
+  getUserHendler(req, res, "users");
+});
 
+/**
+ * Returns a specific user
+ * @param email {@code string}
+ * @returns User_account_settings {@code json}
+ */
+app.get('/getUserAccountSettings/:email', (req, res) => {
+  getUserHendler(req, res, "user_account_settings");
+});
 
 /**
  * Updates user info
@@ -99,7 +109,19 @@ app.get('/getUser/:email', cache('15 second') ,  checkCache, getUserHendler);
  * @body map {@code Map<String, String>}
  * @returns Void
  */
-app.patch('/patchUser', patchUser)
+app.patch('/patchUser', (req, res) => {
+  patchUserHandler(req, res, "users");
+});
+
+/**
+ * Updates user account settings info
+ * @param email {@code string}
+ * @body map {@code Map<String, String>}
+ * @returns Void
+ */
+app.patch('/patchUserAccountSettings', (req, res) => {
+  patchUserAccountSettingsHandler(req, res, "users_account_settings");
+});
 
 
 /**

@@ -40,7 +40,7 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
         * Check if nginx.conf is ok: nginx -t
         * Start nginx: start nginx
         * Reload nginx: nginx -s reload
-
+11. install openssl on windows: https://www.youtube.com/watch?v=cBa87N_BZ4s
 
 
 ***Run:***

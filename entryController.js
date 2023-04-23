@@ -9,8 +9,11 @@ import os from 'os';
 const saltRounds = 10;
 const SIGNUP = 0;
 const LOGIN = 1;
-const PATCH = 2;
+const PATCH_USER = 2;
 const DELETE = 3;
+const GET_USER_DATA = 4;
+const PATCH_USER_ACCOUNT_SETTINGS = 5;
+
 
 const NUM_CPUS = os.cpus().length;
 const NUM_WORKERS = NUM_CPUS - 3;
@@ -78,7 +81,8 @@ const signupHendler = async (req, res) => {
         work: SIGNUP,
         email: String(req.body.email),
         password: String(req.body.password),
-        name: String(req.body.name)
+        username: req.body.username || "none",
+        phone_number: req.body.phone_number || "none"
     };
     addTask(taskData, res);
 
@@ -97,48 +101,49 @@ const loginHendler = async (req, res) => {
 
 
 // just an example of how to access the users in firestore
-const getUserHendler = async (req, res) => {
+const getUserHendler = async (req, res, ref) => {
     
-    const id = req.params.email;
-
-    console.log("in getUser: " + id);
-
-    db.collection("users").doc(id).get()
-    .then(doc => {
-        if (doc.exists) {
-            const jsonData = JSON.stringify(doc.data());
-            console.log(jsonData);
-            return res.status(200).send(jsonData);
-        } else {
-            console.log('getUser: Document not found!');
-        }
-    }).catch(error => {
-        console.log('getUser: Error getting document:', error);
-        return res.status(400).send(error);
-    });
-};
-
-
-const patchUser = async (req, res) => {
-
     const taskData = {
-        work: PATCH,
-        uid: String(req.body.uid),
-        name: req.body.name,
-        email: String(req.body.email),
-        // password: String(req.body.password),
-        isBusiness: req.body.isBusiness || false,
-        followers: req.body.followers || null,
-        following: req.body.following || null,
-        Cart: req.body.Cart || null,
-        Likes: req.body.Likes || null,
-        myPosts: req.body.myPosts || null,
-        myRecipePosts: req.body.myRecipePosts || null
+        work: GET_USER_DATA,
+        email: String(req.params.email),
+        ref: ref
     };
     addTask(taskData, res);
- 
 };
 
+
+const patchUserHandler = async (req, res, ref) => {
+
+    const taskData = {
+        work: PATCH_USER,
+        email: req.body.email,
+        password: req.body.password,
+        phone_number: req.body.phone_number,
+        username: req.body.username,
+        ref: ref
+    };
+    addTask(taskData, res);
+};
+
+
+const patchUserAccountSettingsHandler = async (req, res, ref) => {
+
+    const taskData = {
+        work: PATCH_USER_ACCOUNT_SETTINGS,
+        email: req.body.email,
+        username: req.body.username,
+        description: req.body.description,
+        display_name: req.body.display_name,
+        profile_photo: req.body.profile_photo,
+        isBusiness: req.body.isBusiness,
+        followers: req.body.followers,
+        following: req.body.following,
+        posts: req.body.posts,
+        website: req.body.website,
+        ref: ref
+    };
+    addTask(taskData, res);
+};
 
 const deleteObjectFromRefHendler = async (req, res) => {
     console.log("ref == " + req.params.ref);
@@ -150,4 +155,4 @@ const deleteObjectFromRefHendler = async (req, res) => {
   };
 
  
-  export {signupHendler, loginHendler, getUserHendler, patchUser, deleteObjectFromRefHendler};
+  export {signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
