@@ -13,6 +13,7 @@ const PATCH_USER = 2;
 const DELETE = 3;
 const GET_USER_DATA = 4;
 const PATCH_USER_ACCOUNT_SETTINGS = 5;
+const CHECK_USERNAME = 6;
 
 
 const NUM_CPUS = os.cpus().length;
@@ -80,7 +81,7 @@ const signupHendler = async (req, res) => {
     const taskData = {
         work: SIGNUP,
         email: String(req.body.email),
-        password: String(req.body.password),
+        id: String(req.body.id),
         username: req.body.username || "none",
         phone_number: req.body.phone_number || "none"
     };
@@ -155,4 +156,13 @@ const deleteObjectFromRefHendler = async (req, res) => {
   };
 
  
-  export {signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+const executeCheckUserNameHandler = async (req, res) => {
+    const taskData = {
+        work: CHECK_USERNAME,
+        username: req.params.username
+    };
+    addTask(taskData, res);
+  };
+
+ 
+  export {executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};

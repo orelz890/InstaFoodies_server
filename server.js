@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import { signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -131,6 +131,14 @@ app.patch('/patchUserAccountSettings', (req, res) => {
  * @returns Void
  */
 app.delete('/deleteObjectFromRef/:ref/:email', deleteObjectFromRefHendler)
+
+
+/**
+ * Check if the username is taken. 
+ * @param username {@code string}
+ * @returns boolean
+ */
+app.get('/checkUserName/:username', executeCheckUserNameHandler)
 
 
 /* Start to listen

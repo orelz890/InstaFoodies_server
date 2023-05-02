@@ -7,6 +7,8 @@ const PATCH_USER = 2;
 const DELETE = 3;
 const GET_USER_DATA = 4;
 const PATCH_USER_ACCOUNT_SETTINGS = 5;
+const CHECK_USERNAME = 6;
+
 
 
 // Worker class
@@ -44,6 +46,9 @@ class user_worker {
                 break;
             case DELETE:
                 this.worker.postMessage({ type: 'deleteUser', data: taskData });
+                break;
+            case CHECK_USERNAME:
+                this.worker.postMessage({ type: 'checkUsername', data: taskData });
                 break;
             default:
                 break;

@@ -41,99 +41,60 @@ const signup = async (taskData) => {
 
     try {
         console.log("im in signup!!");
-        const { email, username, password, phone_number} = taskData;
+        const { email, username, phone_number, id} = taskData;
 
-        // Make a new user (Authentication)
-        await admin.auth().createUser({
+        const newUserJson = {
+            user_id: id,
+            username: username,
             email: email,
-            password: password,
-            emailVerified: false,
-            disabled: false
-        }).then(async userResponse => {
+            phone_number: phone_number
+        };
 
-            const hash = await bcrypt.hash(password, saltRounds);
-            console.log("signup:\npass= " + password +  " ,type= "+ password.type + ", len= " + password.length +  "\nhash= " + hash + ", type=" + hash.type + ", len= " + hash.length);
-    
-            const newUserJson = {
-                user_id: userResponse.uid,
-                username: username,
-                email: email,
-                passwordHash: hash,
-                phone_number: phone_number
+        // Add the new user to the users doc in firestore
+        await db.collection("users").doc(id).set(newUserJson)
+        .then(async () => {
+
+            // console.log("newGuy= ", newUserJson);
+            const ref2 = "users_account_settings";
+            const newUserAccountSettingsJson = {
+                username: "none",
+                description: "none",
+                display_name: "none",
+                profile_photo: "none",
+                isBusiness: false,
+                followers: 0,
+                following: 0,
+                posts: 0,
+                website: "none",
             };
-    
-            const id = email;
-            // Add the new user to the users doc in firestore
-            await db.collection("users").doc(id).set(newUserJson)
+        
+            await db.collection(ref2).doc(id).set(newUserAccountSettingsJson);
+            await db.collection(ref2).doc(id).get()
             .then(async () => {
-
-                // console.log("newGuy= ", newUserJson);
-                const ref2 = "users_account_settings";
-                const newUserAccountSettingsJson = {
-                    username: "none",
-                    description: "none",
-                    display_name: "none",
-                    profile_photo: "none",
-                    isBusiness: false,
-                    followers: 0,
-                    following: 0,
-                    posts: 0,
-                    website: "none",
-                };
-            
-                await db.collection(ref2).doc(id).set(newUserAccountSettingsJson);
-                await db.collection(ref2).doc(id).get()
-                .then(async () => {
-                    await db.collection("users").doc(id).get()
-                    .then((userDoc) => {
-                        const jsonData = JSON.stringify(userDoc.data());
-                        console.log(jsonData);
-                        parentPort.postMessage({ success: true, data: jsonData });   
-                    })
-                    .catch(async (error) => {
-                        deleteUserAuth(userResponse.uid);
-                        await db.collection("users").doc(id).delete();                        
-                        await db.collection("users_account_settings").doc(id).delete();                        
-                        console.log('signup: User creation failed', error);
-                        parentPort.postMessage({ success: false, error: 'User creation failed pleaase try again' });
-                    });
+                await db.collection("users").doc(id).get()
+                .then((userDoc) => {
+                    const jsonData = JSON.stringify(userDoc.data());
+                    console.log(jsonData);
+                    console.log("signup: Client " + id + " signed up");
+                    parentPort.postMessage({ success: true, data: jsonData });   
                 })
                 .catch(async (error) => {
-                    deleteUserAuth(userResponse.uid);
                     await db.collection("users").doc(id).delete();                        
+                    await db.collection("users_account_settings").doc(id).delete();                        
                     console.log('signup: User creation failed', error);
                     parentPort.postMessage({ success: false, error: 'User creation failed pleaase try again' });
                 });
-            }).catch(error =>{
-                deleteUserAuth(userResponse.uid);
-                console.log('signup: not able to signup set didnt work:', error);
-                parentPort.postMessage({ success: false, error: 'Not able to signup try again with diffrent Credentials'});    
+            })
+            .catch(async (error) => {
+                await db.collection("users").doc(id).delete();                        
+                console.log('signup: User creation failed', error);
+                parentPort.postMessage({ success: false, error: 'User creation failed pleaase try again' });
             });
-            console.log("signup: Client " + id + " signed up");
-    
-            // Return the new user JSON to the app
-            // await db.collection("users").doc(id).get()
-            // .then(userDoc => {
-            //     if (userDoc.exists) {
-            //         const jsonData = JSON.stringify(userDoc.data());
-            //         console.log(jsonData);
-            //         parentPort.postMessage({ success: true, data: jsonData });
-            //     } else {
-            //         deleteUserAuth(userResponse.uid);
-            //         console.log('signup: User not found!');
-            //         parentPort.postMessage({ success: false, error: 'Document not found!' });
-            //     }
-            // }).catch(error =>{
-            //     deleteUserAuth(userResponse.uid);
-            //     console.log('signup: not able to signup set didnt work:', error);
-            //     parentPort.postMessage({ success: false, error: 'Not able to signup try again with diffrent Credentials'});    
-            // });
-        }).catch(error => {
-            console.log('signup: not able to signup:', error);
-            parentPort.postMessage({ success: false, error: 'Not able to signup try again with diffrent Credentials'});
+        }).catch(error =>{
+            console.log('signup: not able to signup set didnt work:', error);
+            parentPort.postMessage({ success: false, error: 'Not able to signup try again with diffrent Credentials'});    
         });
-
-    } catch (error) {
+    }catch (error) {
         console.log('signup: Error:', error);
         parentPort.postMessage({ success: false, error: error });
     }
@@ -370,6 +331,32 @@ const deleteUser = async (taskData) => {
 }
 
 
+const checkUsername = async (taskData) => {
+    const {username} = taskData;
+    let notInUseFlag = true;
+    console.log("im in checkUsername: ", username);
+    db.collection("users").get()
+    .then(async (usersSnapshot) => {
+        usersSnapshot.forEach((user) => {
+            if(user.data().username === username) {
+                notInUseFlag = false;
+                // parentPort.postMessage({ success: true, data: false});                
+                console.log("checkUsername: 111111");
+                return false;
+            }
+        });
+        console.log("checkUsername: 222222");
+
+        parentPort.postMessage({ success: true, data: notInUseFlag});                
+    })
+    .catch((error) => {
+        console.log("checkUsername: Failed while checking the username", error);
+        parentPort.postMessage({ success: false, error: "Failed while checking the username: " + error });
+    });    
+}
+
+
+
 while (true) {
     // Wait for a message to be received (sleep until then)
     const message = await new Promise(resolve => {
@@ -399,8 +386,11 @@ while (true) {
             result = await patchUserAccountSettings(message.data);
             break;
         case 'deleteUser':
-          result = await deleteUser(message.data);
-          break;
+            result = await deleteUser(message.data);
+            break;
+        case 'checkUsername':
+            result = await checkUsername(message.data);
+            break;
         default:
           break;
       }
