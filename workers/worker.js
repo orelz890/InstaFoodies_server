@@ -57,9 +57,9 @@ const signup = async (taskData) => {
             // console.log("newGuy= ", newUserJson);
             const ref2 = "users_account_settings";
             const newUserAccountSettingsJson = {
-                username: "none",
+                username: username,
                 description: "none",
-                display_name: "none",
+                display_name: username,
                 profile_photo: "none",
                 isBusiness: false,
                 followers: 0,
