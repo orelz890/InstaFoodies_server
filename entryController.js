@@ -81,7 +81,7 @@ const signupHendler = async (req, res) => {
     const taskData = {
         work: SIGNUP,
         email: String(req.body.email),
-        id: String(req.body.id),
+        id: String(req.body.user_id),
         username: req.body.username || "none",
         phone_number: req.body.phone_number || "none"
     };
@@ -157,6 +157,7 @@ const deleteObjectFromRefHendler = async (req, res) => {
 
  
 const executeCheckUserNameHandler = async (req, res) => {
+    console.log("im in executeCheckUserNameHandler\n");
     const taskData = {
         work: CHECK_USERNAME,
         username: req.params.username

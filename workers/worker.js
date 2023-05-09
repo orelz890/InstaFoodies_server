@@ -335,19 +335,21 @@ const checkUsername = async (taskData) => {
     const {username} = taskData;
     let notInUseFlag = true;
     console.log("im in checkUsername: ", username);
-    db.collection("users").get()
+    await db.collection("users").get()
     .then(async (usersSnapshot) => {
         usersSnapshot.forEach((user) => {
             if(user.data().username === username) {
                 notInUseFlag = false;
                 // parentPort.postMessage({ success: true, data: false});                
                 console.log("checkUsername: 111111");
+                parentPort.postMessage({ success: false, data: notInUseFlag});                
                 return false;
             }
         });
-        console.log("checkUsername: 222222");
-
-        parentPort.postMessage({ success: true, data: notInUseFlag});                
+        if (notInUseFlag){
+            console.log("checkUsername: 222222");
+            parentPort.postMessage({ success: true, data: notInUseFlag});
+        }
     })
     .catch((error) => {
         console.log("checkUsername: Failed while checking the username", error);
