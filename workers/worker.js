@@ -342,17 +342,16 @@ const checkUsername = async (taskData) => {
                 notInUseFlag = false;
                 // parentPort.postMessage({ success: true, data: false});                
                 console.log("checkUsername: 111111");
-                parentPort.postMessage({ success: false, data: notInUseFlag});                
+                parentPort.postMessage({ success: true, data: notInUseFlag});                
                 return false;
             }
         });
-
     })
     .catch((error) => {
         console.log("checkUsername: Failed while checking the username", error);
         parentPort.postMessage({ success: false, error: "Failed while checking the username: " + error });
     });
-    
+
     if (notInUseFlag){
         console.log("checkUsername: 222222");
         parentPort.postMessage({ success: true, data: notInUseFlag});
