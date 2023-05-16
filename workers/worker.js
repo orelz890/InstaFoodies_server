@@ -41,13 +41,14 @@ const signup = async (taskData) => {
 
     try {
         console.log("im in signup!!");
-        const { email, username, phone_number, id} = taskData;
+        const { email, username, phone_number, id,fullname} = taskData;
 
         const newUserJson = {
             user_id: id,
             username: username,
             email: email,
-            phone_number: phone_number
+            phone_number: phone_number,
+            full_name: fullname
         };
 
         // Add the new user to the users doc in firestore
@@ -59,7 +60,7 @@ const signup = async (taskData) => {
             const newUserAccountSettingsJson = {
                 username: username,
                 description: "none",
-                display_name: username,
+                display_name: fullname,
                 profile_photo: "none",
                 isBusiness: false,
                 followers: 0,
