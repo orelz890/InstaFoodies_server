@@ -48,7 +48,8 @@ const signup = async (taskData) => {
             username: username,
             full_name: full_name,
             email: email,
-            phone_number: phone_number
+            phone_number: phone_number,
+            full_name: fullname
         };
 
         // Add the new user to the users doc in firestore
