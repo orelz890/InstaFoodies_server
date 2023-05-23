@@ -41,11 +41,12 @@ const signup = async (taskData) => {
 
     try {
         console.log("im in signup!!");
-        const { email, username, phone_number, id} = taskData;
+        const { email, username, full_name ,phone_number, id} = taskData;
 
         const newUserJson = {
             user_id: id,
             username: username,
+            full_name: full_name,
             email: email,
             phone_number: phone_number
         };
@@ -57,9 +58,7 @@ const signup = async (taskData) => {
             // console.log("newGuy= ", newUserJson);
             const ref2 = "users_account_settings";
             const newUserAccountSettingsJson = {
-                username: username,
                 description: "none",
-                display_name: username,
                 profile_photo: "none",
                 isBusiness: false,
                 followers: 0,
@@ -139,11 +138,11 @@ const login = async (taskData) => {
 
 // just an example of how to access the users in firestore
 const getUserHendler = async (taskData) => {    
-    const { email, ref } = taskData;
+    const { uid, ref } = taskData;
 
-    console.log("in getUserHendler: " + email);
+    console.log("in getUserHendler: " + uid);
 
-    db.collection(ref).doc(email).get()
+    db.collection(ref).doc(uid).get()
     .then(doc => {
         if (doc.exists) {
             const jsonData = JSON.stringify(doc.data());
@@ -187,10 +186,10 @@ const updateUser = async (ref,email,data) =>{
 
 
 const patchUser = async (taskData) => {
-    const {email, password, phone_number, username ,ref} = taskData;
+    const {email, uid, password, phone_number, username, full_name ,ref} = taskData;
 
     console.log("in patchUser: " , email, password, username);
-    db.collection(ref).doc(email).get()
+    db.collection(ref).doc(uid).get()
     .then(async doc => {
         if (doc.exists) {
             const jsonData = JSON.stringify(doc.data());
@@ -207,7 +206,8 @@ const patchUser = async (taskData) => {
                         user_id: data.user_id,
                         email: data.email,
                         phone_number: phone_number || data.phone_number,
-                        username: username || data.username
+                        username: username || data.username,
+                        full_name: full_name || data.full_name
                     };
                     // console.log("newGuy= ", newUserJson);
                     updateUser(ref,email,newUserJson)
@@ -225,7 +225,9 @@ const patchUser = async (taskData) => {
                     user_id: data.user_id,
                     email: data.email,
                     phone_number: phone_number || data.phone_number,
-                    username: username || data.username
+                    username: username || data.username,
+                    full_name: full_name || data.full_name
+
                 };
                 // console.log("newGuy= ", newUserJson);
                 updateUser(ref,email,newUserJson)
@@ -243,20 +245,18 @@ const patchUser = async (taskData) => {
 }
 
 const patchUserAccountSettings = async (taskData) => {
-    const {email,username, description, display_name, profile_photo, isBusiness, followers, following,
+    const {email, uid, description, profile_photo, isBusiness, followers, following,
         posts, website ,ref} = taskData;
 
-    console.log("in patchUserAccountSettings: " , email, username);
-    db.collection(ref).doc(email).get()
+    // console.log("in patchUserAccountSettings: " , email, username);
+    db.collection(ref).doc(uid).get()
     .then(async doc => {
         if (doc.exists) {
             const jsonData = JSON.stringify(doc.data());
             const data = JSON.parse(jsonData);
             // console.log(jsonData);
             const newUserJson = {
-                username: username || data.username,
                 description: description || data.description,
-                display_name: display_name || data.display_name,
                 profile_photo: profile_photo || data.profile_photo,
                 isBusiness: isBusiness || data.isBusiness,
                 followers: followers || data.followers,
@@ -270,9 +270,7 @@ const patchUserAccountSettings = async (taskData) => {
             // parentPort.postMessage({ success: true, error: 'Document updated!' });
         } else {
             const newUserJson = {
-                username: username || "none",
                 description: description || "none",
-                display_name: display_name || "none",
                 profile_photo: profile_photo || "none",
                 isBusiness: isBusiness || false,
                 followers: followers || 0,
@@ -293,10 +291,10 @@ const patchUserAccountSettings = async (taskData) => {
 }
 
 const deleteUser = async (taskData) => {
-    const {email} = taskData;
+    const {uid} = taskData;
 
     console.log("im in delete");
-    const id = email; // get the ID of the document to delete
+    const id = uid; // get the ID of the document to delete
     console.log(', id = ' + id);
 
     db.collection("users").doc(id).get()

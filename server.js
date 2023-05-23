@@ -87,39 +87,39 @@ app.post('/login', cache('1 second') , checkCache, loginHendler);
 
 /**
  * Returns a specific user
- * @param email {@code string}
+ * @param uid {@code string}
  * @returns User {@code json}
  */
-app.get('/getUser/:email', (req, res) => {
+app.get('/getUser/:uid', (req, res) => {
   getUserHendler(req, res, "users");
 });
 
 /**
  * Returns a specific user
- * @param email {@code string}
+ * @param uid {@code string}
  * @returns User_account_settings {@code json}
  */
-app.get('/getUserAccountSettings/:email', (req, res) => {
+app.get('/getUserAccountSettings/:uid', (req, res) => {
   getUserHendler(req, res, "user_account_settings");
 });
 
 /**
  * Updates user info
- * @param email {@code string}
+ * @param uid {@code string}
  * @body map {@code Map<String, String>}
  * @returns Void
  */
-app.patch('/patchUser', (req, res) => {
+app.patch('/patchUser/:uid', (req, res) => {
   patchUserHandler(req, res, "users");
 });
 
 /**
  * Updates user account settings info
- * @param email {@code string}
+ * @param uid {@code string}
  * @body map {@code Map<String, String>}
  * @returns Void
  */
-app.patch('/patchUserAccountSettings', (req, res) => {
+app.patch('/patchUserAccountSettings/:uid', (req, res) => {
   patchUserAccountSettingsHandler(req, res, "users_account_settings");
 });
 
@@ -130,7 +130,7 @@ app.patch('/patchUserAccountSettings', (req, res) => {
  * @param email the second {@code string}
  * @returns Void
  */
-app.delete('/deleteObjectFromRef/:ref/:email', deleteObjectFromRefHendler)
+app.delete('/deleteObjectFromRef/:ref/:uid', deleteObjectFromRefHendler)
 
 
 /**

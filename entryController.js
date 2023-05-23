@@ -83,6 +83,7 @@ const signupHendler = async (req, res) => {
         email: String(req.body.email),
         id: String(req.body.user_id),
         username: req.body.username || "none",
+        full_name: req.body.full_name || "none",
         phone_number: req.body.phone_number || "none"
     };
     addTask(taskData, res);
@@ -106,7 +107,7 @@ const getUserHendler = async (req, res, ref) => {
     
     const taskData = {
         work: GET_USER_DATA,
-        email: String(req.params.email),
+        uid: String(req.params.uid),
         ref: ref
     };
     addTask(taskData, res);
@@ -117,10 +118,12 @@ const patchUserHandler = async (req, res, ref) => {
 
     const taskData = {
         work: PATCH_USER,
+        uid: req.params.uid,
         email: req.body.email,
         password: req.body.password,
         phone_number: req.body.phone_number,
         username: req.body.username,
+        full_name: req.body.full_name,
         ref: ref
     };
     addTask(taskData, res);
@@ -131,10 +134,9 @@ const patchUserAccountSettingsHandler = async (req, res, ref) => {
 
     const taskData = {
         work: PATCH_USER_ACCOUNT_SETTINGS,
+        uid: req.params.uid,
         email: req.body.email,
-        username: req.body.username,
         description: req.body.description,
-        display_name: req.body.display_name,
         profile_photo: req.body.profile_photo,
         isBusiness: req.body.isBusiness,
         followers: req.body.followers,
@@ -150,7 +152,7 @@ const deleteObjectFromRefHendler = async (req, res) => {
     console.log("ref == " + req.params.ref);
     const taskData = {
         work: DELETE,
-        email: req.params.email
+        uid: req.params.uid
     };
     addTask(taskData, res);
   };
