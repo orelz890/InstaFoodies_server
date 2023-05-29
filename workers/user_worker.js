@@ -8,6 +8,8 @@ const DELETE = 3;
 const GET_USER_DATA = 4;
 const PATCH_USER_ACCOUNT_SETTINGS = 5;
 const CHECK_USERNAME = 6;
+const CREATE_NEW_CHAT_GROUP = 7;
+const GET_CHAT_GROUPS = 8;
 
 
 
@@ -49,6 +51,12 @@ class user_worker {
                 break;
             case CHECK_USERNAME:
                 this.worker.postMessage({ type: 'checkUsername', data: taskData });
+                break;
+            case CREATE_NEW_CHAT_GROUP:
+                this.worker.postMessage({ type: 'createNewChatGroup', data: taskData });
+                break;
+            case GET_CHAT_GROUPS:
+                this.worker.postMessage({ type: 'getUserChatGroups', data: taskData });
                 break;
             default:
                 break;

@@ -396,6 +396,12 @@ while (true) {
         case 'checkUsername':
             result = await checkUsername(message.data);
             break;
+        case 'createNewChatGroup':
+            result = await createNewChatGroup(message.data);
+            break;
+        case 'getUserChatGroups':
+            result = await getUserChatGroups(message.data);
+            break;
         default:
           break;
       }

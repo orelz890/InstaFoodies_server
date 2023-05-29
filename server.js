@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import {executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -139,6 +139,25 @@ app.delete('/deleteObjectFromRef/:ref/:uid', deleteObjectFromRefHendler)
  * @returns boolean
  */
 app.get('/checkUserName/:username', executeCheckUserNameHandler)
+
+
+// ====================================== Chat =========================
+
+/**
+ * Create a new chat group for a user. 
+ * @param name {@code string}
+ * @returns boolean
+ */
+app.post('/createNewChatGroup/:uid/:name', createNewChatGroupHandler)
+
+/**
+ * Create a new chat group for a user. 
+ * @param name {@code string}
+ * @returns boolean
+ */
+app.get('/getUserChatGroups/:uid', getChatGroupHandler)
+
+
 
 
 /* Start to listen

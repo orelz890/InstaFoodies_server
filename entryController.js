@@ -14,6 +14,9 @@ const DELETE = 3;
 const GET_USER_DATA = 4;
 const PATCH_USER_ACCOUNT_SETTINGS = 5;
 const CHECK_USERNAME = 6;
+const CREATE_NEW_CHAT_GROUP = 7;
+const GET_CHAT_GROUPS = 8;
+
 
 
 const NUM_CPUS = os.cpus().length;
@@ -167,5 +170,25 @@ const executeCheckUserNameHandler = async (req, res) => {
     addTask(taskData, res);
   };
 
+
+const createNewChatGroupHandler = async (req, res) => {
+    console.log("im in createNewChatGroupHandler\n");
+    const taskData = {
+        work: CREATE_NEW_CHAT_GROUP,
+        uid: req.params.uid,
+        name: req.params.name
+    };
+    addTask(taskData, res);
+};
+
+
+const getChatGroupHandler = async (req, res) => {
+    console.log("im in getChatGroupHandler\n");
+    const taskData = {
+        work: GET_CHAT_GROUPS,
+        uid: req.params.uid
+    };
+    addTask(taskData, res);
+};
  
-  export {executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+  export {getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
