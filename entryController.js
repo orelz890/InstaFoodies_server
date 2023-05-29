@@ -77,11 +77,11 @@ setInterval(processTaskQueue, 100);
 
 
 const signupHendler = async (req, res) => {
-    console.log("im in signupHendler")
+    console.log("im in signupHendler " + req.body.full_name) 
     const taskData = {
         work: SIGNUP,
-        email: String(req.body.email),
-        id: String(req.body.user_id),
+        email: req.body.email,
+        id: req.body.user_id,
         username: req.body.username || "none",
         full_name: req.body.full_name || "none",
         phone_number: req.body.phone_number || "none"
@@ -107,7 +107,7 @@ const getUserHendler = async (req, res, ref) => {
     
     const taskData = {
         work: GET_USER_DATA,
-        uid: String(req.params.uid),
+        uid: req.params.uid,
         ref: ref
     };
     addTask(taskData, res);

@@ -42,14 +42,13 @@ const signup = async (taskData) => {
     try {
         console.log("im in signup!!");
         const { email, username, full_name ,phone_number, id} = taskData;
-
         const newUserJson = {
             user_id: id,
             username: username,
             full_name: full_name,
             email: email,
             phone_number: phone_number,
-            full_name: fullname
+            full_name: full_name
         };
 
         // Add the new user to the users doc in firestore
@@ -145,6 +144,10 @@ const getUserHendler = async (taskData) => {
 
     db.collection(ref).doc(uid).get()
     .then(doc => {
+        console.log("ref= " + ref)
+        console.log("log= " + !doc.exists)
+        console.log("collection= " + doc.data())
+
         if (doc.exists) {
             const jsonData = JSON.stringify(doc.data());
             console.log(jsonData);

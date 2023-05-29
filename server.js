@@ -100,7 +100,7 @@ app.get('/getUser/:uid', (req, res) => {
  * @returns User_account_settings {@code json}
  */
 app.get('/getUserAccountSettings/:uid', (req, res) => {
-  getUserHendler(req, res, "user_account_settings");
+  getUserHendler(req, res, "users_account_settings");
 });
 
 /**
