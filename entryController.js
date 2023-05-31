@@ -16,6 +16,7 @@ const PATCH_USER_ACCOUNT_SETTINGS = 5;
 const CHECK_USERNAME = 6;
 const CREATE_NEW_CHAT_GROUP = 7;
 const GET_CHAT_GROUPS = 8;
+const GET_FOLLWING = 9;
 
 
 
@@ -87,7 +88,8 @@ const signupHendler = async (req, res) => {
         id: req.body.user_id,
         username: req.body.username || "none",
         full_name: req.body.full_name || "none",
-        phone_number: req.body.phone_number || "none"
+        phone_number: req.body.phone_number || "none",
+        following_ids: req.body.following_ids
     };
     addTask(taskData, res);
 
@@ -146,6 +148,7 @@ const patchUserAccountSettingsHandler = async (req, res, ref) => {
         following: req.body.following,
         posts: req.body.posts,
         website: req.body.website,
+        following_ids: req.body.following_ids,
         ref: ref
     };
     addTask(taskData, res);
@@ -190,5 +193,23 @@ const getChatGroupHandler = async (req, res) => {
     };
     addTask(taskData, res);
 };
+
+const getFollowingUsersHandler = async (req, res, ref) => {
+    console.log("im in getFollowingUsersHandler\n");
+
+    let ids = req.params.ids;
+
+    // Remove square brackets if present
+    if (ids.startsWith('[') && ids.endsWith(']')) {
+        ids = ids.substring(1, ids.length - 1);
+    }
+
+    const taskData = {
+        work: GET_FOLLWING,
+        following_ids: ids.split(','),
+        ref: ref
+    };
+    addTask(taskData, res);
+};
  
-  export {getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+  export {getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};

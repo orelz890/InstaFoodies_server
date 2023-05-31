@@ -10,6 +10,7 @@ const PATCH_USER_ACCOUNT_SETTINGS = 5;
 const CHECK_USERNAME = 6;
 const CREATE_NEW_CHAT_GROUP = 7;
 const GET_CHAT_GROUPS = 8;
+const GET_FOLLWING = 9;
 
 
 
@@ -57,6 +58,9 @@ class user_worker {
                 break;
             case GET_CHAT_GROUPS:
                 this.worker.postMessage({ type: 'getUserChatGroups', data: taskData });
+                break;
+            case GET_FOLLWING:
+                this.worker.postMessage({ type: 'getFollowings', data: taskData });
                 break;
             default:
                 break;

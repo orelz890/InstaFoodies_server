@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import {getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -157,6 +157,23 @@ app.post('/createNewChatGroup/:uid/:name', createNewChatGroupHandler)
  */
 app.get('/getUserChatGroups/:uid', getChatGroupHandler)
 
+
+/**
+ * Get all the user followings users. 
+ * @param name {@code string}
+ * @returns List of U
+ */
+app.get('/getFollowingUsers/:ids', (req, res) => { 
+  getFollowingUsersHandler(req, res, "users")})
+
+
+  /**
+ * Get all the user followings users. 
+ * @param name {@code string}
+ * @returns List of U
+ */
+app.get('/getFollowingUsersAccountSettings/:ids', (req, res) => { 
+  getFollowingUsersHandler(req, res, "users_account_settings")})
 
 
 

@@ -41,7 +41,7 @@ const signup = async (taskData) => {
 
     try {
         console.log("im in signup!!");
-        const { email, username, full_name ,phone_number, id} = taskData;
+        const { email, username, full_name ,phone_number, id, following_ids} = taskData;
         const newUserJson = {
             user_id: id,
             username: username,
@@ -51,10 +51,10 @@ const signup = async (taskData) => {
             full_name: full_name
         };
 
+        const my_list = [];
         // Add the new user to the users doc in firestore
         await db.collection("users").doc(id).set(newUserJson)
         .then(async () => {
-
             // console.log("newGuy= ", newUserJson);
             const ref2 = "users_account_settings";
             const newUserAccountSettingsJson = {
@@ -65,6 +65,8 @@ const signup = async (taskData) => {
                 following: 0,
                 posts: 0,
                 website: "none",
+                following_ids: my_list
+
             };
         
             await db.collection(ref2).doc(id).set(newUserAccountSettingsJson);
@@ -250,7 +252,7 @@ const patchUser = async (taskData) => {
 
 const patchUserAccountSettings = async (taskData) => {
     const {email, uid, description, profile_photo, isBusiness, followers, following,
-        posts, website ,ref} = taskData;
+        posts, website, following_ids ,ref} = taskData;
 
     // console.log("in patchUserAccountSettings: " , email, username);
     db.collection(ref).doc(uid).get()
@@ -267,6 +269,7 @@ const patchUserAccountSettings = async (taskData) => {
                 following: following || data.following,
                 posts: posts || data.posts,
                 website: website || data.website,
+                following_ids: following_ids || data.following_ids
             };
             // console.log("newGuy= ", newUserJson);
             updateUser(ref,email,newUserJson)
@@ -281,6 +284,7 @@ const patchUserAccountSettings = async (taskData) => {
                 following: following || 0,
                 posts: posts || 0,
                 website: website || "none",
+                following_ids: following_ids
             };
             // console.log("newGuy= ", newUserJson);
             updateUser(ref,email,newUserJson)
@@ -362,6 +366,88 @@ const checkUsername = async (taskData) => {
 
 
 
+// ======================================= Chat ===================================
+
+const createNewChatGroup = async (taskData) => {
+    console.log("Im in worker-createNewChatGroup");
+    const {uid, name} = taskData;
+    const Group = {
+        string: name
+      };
+    await db.collection("Chat").doc(uid).collection("Groups").doc(name).set(Group)
+    .then(async () => {
+        console.log("createNewChatGroup: Success!");
+        parentPort.postMessage({ success: true, data: "success"});
+    })
+    .catch((error) => {
+        console.log("createNewChatGroup: Error: ", error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    });
+}
+
+
+const getUserChatGroups = async (taskData) => {
+    const { uid } = taskData;
+    const groups = [];
+    await db.collection("Chat").doc(uid).collection("Groups").get()
+    .then(async (groupsSnapshot) => {
+        groupsSnapshot.forEach((doc) => {
+            const group = doc.data();
+            groups.push(group.string);
+        });
+          console.log("All groups:", groups);
+          parentPort.postMessage({ success: true, data: groups});
+    })
+    .catch((error) => {
+        console.log("getUserChatGroups: Error: ", error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    });
+};
+
+
+const getFollowings = async (taskData) => {
+    const { following_ids ,ref} = taskData;
+    const followings_list = {};
+    const followings_list2 = [];
+    console.log("in getFollowings");
+
+    // Iterate over the elements using a for loop
+    for (let i = 0; i < following_ids.length; i++) {
+      const id = following_ids [i];
+      console.log("id(" + i + "): " + id);
+
+        await db.collection(ref).doc(id).get()
+        .then(doc => {
+            console.log("ref= " + ref)
+            console.log("collection= " + doc.data())
+            // const jsonData = JSON.stringify(doc.data());
+            // console.log(jsonData);
+            if (doc.exists) {
+                // const jsonData = JSON.stringify(doc.data());
+                // console.log(jsonData);
+                followings_list2.push(doc.data())
+                followings_list[id] = doc.data();
+                
+            } else {
+                console.log('getUserHendler: Document not found!');
+                // parentPort.postMessage({ success: false, error: 'Document not found!' });
+            }
+        }).catch(error => {
+            console.log('getUserHendler: Error getting document:', error);
+            // parentPort.postMessage({ success: false, error: 'Error getting document:' + error });
+        });
+    }
+    const serializedMap = JSON.stringify(followings_list);
+
+    // const serializedMap = Array.from(followings_list);
+    console.log("followings_list = " + serializedMap)
+
+    parentPort.postMessage({ success: true, data: followings_list2 });
+
+
+};
+
+
 while (true) {
     // Wait for a message to be received (sleep until then)
     const message = await new Promise(resolve => {
@@ -402,6 +488,9 @@ while (true) {
         case 'getUserChatGroups':
             result = await getUserChatGroups(message.data);
             break;
+        case 'getFollowings':
+            result = await getFollowings(message.data);
+            break;
         default:
           break;
       }
@@ -409,7 +498,6 @@ while (true) {
         console.log("user_worker: Error in the switch: " + err);
     }
   }
-
 
 // ================ Working but not sleeping until there is work ======== patchUserAccountSettings
 // // Message handler
