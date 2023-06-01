@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import {getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -163,7 +163,7 @@ app.get('/getUserChatGroups/:uid', getChatGroupHandler)
  * @param name {@code string}
  * @returns List of U
  */
-app.get('/getFollowingUsers/:ids', (req, res) => { 
+app.get('/getFollowingUsers/:uid', (req, res) => { 
   getFollowingUsersHandler(req, res, "users")})
 
 
@@ -172,11 +172,31 @@ app.get('/getFollowingUsers/:ids', (req, res) => {
  * @param name {@code string}
  * @returns List of U
  */
-app.get('/getFollowingUsersAccountSettings/:ids', (req, res) => { 
+app.get('/getFollowingUsersAccountSettings/:uid', (req, res) => { 
   getFollowingUsersHandler(req, res, "users_account_settings")})
 
 
 
+  /**
+ * Get all the user contacts users. 
+ * @param name {@code string}
+ * @returns List of Users
+ */
+app.get('/getContactsUsers/:uid', (req, res) => { 
+  getContactsHandler(req, res, "users")})
+
+
+
+  /**
+ * Get all the user contacts settings. 
+ * @param name {@code string}
+ * @returns List of Account settings
+ */
+  app.get('/getContactsSettings/:uid', (req, res) => { 
+    getContactsHandler(req, res, "users_account_settings")})
+
+    
+    
 /* Start to listen
    If planning to deploy this app to cloud application some times the port is not 8080 by defualt so it will take whatever port that is open for there case.
 */

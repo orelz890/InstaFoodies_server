@@ -13,7 +13,8 @@ import credentials from './key.json' assert { type: "json" };
 // Init the application using the 'credentials
 const app = admin.initializeApp({
     credential: admin.credential.cert(credentials),
-    projectId: credentials.project_id
+    projectId: credentials.project_id,
+    databaseURL: 'https://instafoodies-b1767-default-rtdb.firebaseio.com'
 
 });
 

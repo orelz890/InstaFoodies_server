@@ -406,46 +406,86 @@ const getUserChatGroups = async (taskData) => {
 
 
 const getFollowings = async (taskData) => {
-    const { following_ids ,ref} = taskData;
-    const followings_list = {};
-    const followings_list2 = [];
-    console.log("in getFollowings");
+    const { uid ,ref} = taskData;
+    const followings_list_ids = [];
+    const followings_list = [];
+    console.log("in getFollowings, uid = " + uid);
+
+    await db.collection("users_account_settings").doc(uid).get()
+    .then(doc => {
+        console.log("ref= " + ref)
+        console.log("following_ids= " + doc.data().following_ids)
+        if (doc.exists) {
+            doc.data().following_ids.forEach(element => {
+                followings_list_ids.push(element);
+                // console.log("element = " + element)
+            });
+        } else {
+            console.log('getUserHendler: Document not found!');
+        }
+    }).catch(error => {
+        console.log('getUserHendler: Error getting document:', error);
+    });
+
+    // const jsonData = JSON.stringify(followings_list);
+    // const data = JSON.parse(jsonData);
+    // console.log("followings_list = " + jsonData);
 
     // Iterate over the elements using a for loop
-    for (let i = 0; i < following_ids.length; i++) {
-      const id = following_ids [i];
-      console.log("id(" + i + "): " + id);
+    for (let i = 0; i < followings_list_ids.length; i++) {
+        const id = followings_list_ids[i];
+        console.log("id(" + i + "): " + id);
 
         await db.collection(ref).doc(id).get()
         .then(doc => {
             console.log("ref= " + ref)
             console.log("collection= " + doc.data())
-            // const jsonData = JSON.stringify(doc.data());
-            // console.log(jsonData);
             if (doc.exists) {
-                // const jsonData = JSON.stringify(doc.data());
-                // console.log(jsonData);
-                followings_list2.push(doc.data())
-                followings_list[id] = doc.data();
-                
+                followings_list.push(doc.data())
             } else {
                 console.log('getUserHendler: Document not found!');
-                // parentPort.postMessage({ success: false, error: 'Document not found!' });
             }
         }).catch(error => {
             console.log('getUserHendler: Error getting document:', error);
-            // parentPort.postMessage({ success: false, error: 'Error getting document:' + error });
         });
     }
-    const serializedMap = JSON.stringify(followings_list);
 
-    // const serializedMap = Array.from(followings_list);
-    console.log("followings_list = " + serializedMap)
-
-    parentPort.postMessage({ success: true, data: followings_list2 });
-
-
+    parentPort.postMessage({ success: true, data: followings_list });
 };
+
+
+const getContacts = async (taskData) => {
+    const {uid} = taskData;
+    const contacts_list = [];
+
+    console.log("in getContacts, uid = "+ uid);
+
+    const db = admin.database();
+    const ref = db.ref('Contacts').child(uid);
+    
+    await ref.once('value')
+        .then((snapshot) => {
+            console.log('snapshot = ' + snapshot.val())
+        snapshot.forEach((childSnapshot) => {
+            const id = childSnapshot.key.slice();;
+            console.log("id?? = " + id);
+            contacts_list.push(id);
+        });
+    })
+    .catch((error) => {
+      console.error('Error fetching data:', error);
+    });
+
+    console.log("contacts_list = " + contacts_list)
+    
+    const task = {
+        following_ids: contacts_list,
+        ref: taskData.ref
+    };
+
+    getFollowings(task);
+};
+
 
 
 while (true) {
@@ -490,6 +530,9 @@ while (true) {
             break;
         case 'getFollowings':
             result = await getFollowings(message.data);
+            break;
+        case 'getContacts':
+            result = await getContacts(message.data);
             break;
         default:
           break;

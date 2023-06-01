@@ -17,6 +17,7 @@ const CHECK_USERNAME = 6;
 const CREATE_NEW_CHAT_GROUP = 7;
 const GET_CHAT_GROUPS = 8;
 const GET_FOLLWING = 9;
+const GET_CONTACTS = 10;
 
 
 
@@ -195,21 +196,31 @@ const getChatGroupHandler = async (req, res) => {
 };
 
 const getFollowingUsersHandler = async (req, res, ref) => {
-    console.log("im in getFollowingUsersHandler\n");
 
-    let ids = req.params.ids;
-
-    // Remove square brackets if present
-    if (ids.startsWith('[') && ids.endsWith(']')) {
-        ids = ids.substring(1, ids.length - 1);
-    }
+    let id = req.params.uid;
+    console.log("im in getFollowingUsersHandler\n id = " + id);
 
     const taskData = {
         work: GET_FOLLWING,
-        following_ids: ids.split(','),
+        uid: id,
+        ref: ref
+    };
+    addTask(taskData, res);
+};
+
+const getContactsHandler = async (req, res, ref) => {
+    console.log("im in getContactsHandler\n");
+
+    let uid = req.params.uid;
+
+    console.log("id = " + uid);
+
+    const taskData = {
+        work: GET_CONTACTS,
+        uid: uid,
         ref: ref
     };
     addTask(taskData, res);
 };
  
-  export {getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+  export {getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
