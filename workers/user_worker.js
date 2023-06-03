@@ -12,6 +12,9 @@ const CREATE_NEW_CHAT_GROUP = 7;
 const GET_CHAT_GROUPS = 8;
 const GET_FOLLWING = 9;
 const GET_CONTACTS = 10;
+const GET_REQUESTS = 11;
+const GET_CONTACTS_USERS_AND_ACCOUNTS = 12;
+const GET_FOLLOWINGS_USERS_AND_ACCOUNTS = 13;
 
 
 
@@ -65,6 +68,15 @@ class user_worker {
                 break;
             case GET_CONTACTS:
                 this.worker.postMessage({ type: 'getContacts', data: taskData });
+                break;
+            case GET_REQUESTS:
+                this.worker.postMessage({ type: 'getRequests', data: taskData });
+                break;
+            case GET_CONTACTS_USERS_AND_ACCOUNTS:
+                this.worker.postMessage({ type: 'getContactsUsersAndSettings', data: taskData });
+                break;
+            case GET_FOLLOWINGS_USERS_AND_ACCOUNTS:
+                this.worker.postMessage({ type: 'getFollowingUsersAndAccounts', data: taskData });
                 break;
             default:
                 break;

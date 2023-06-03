@@ -18,6 +18,9 @@ const CREATE_NEW_CHAT_GROUP = 7;
 const GET_CHAT_GROUPS = 8;
 const GET_FOLLWING = 9;
 const GET_CONTACTS = 10;
+const GET_REQUESTS = 11;
+const GET_CONTACTS_USERS_AND_ACCOUNTS = 12;
+const GET_FOLLOWINGS_USERS_AND_ACCOUNTS = 13;
 
 
 
@@ -222,5 +225,48 @@ const getContactsHandler = async (req, res, ref) => {
     };
     addTask(taskData, res);
 };
+
+const getRequestsHandler = async (req, res) => {
+    console.log("im in getContactsHandler\n");
+
+    let uid = req.params.uid;
+
+    console.log("id = " + uid);
+
+    const taskData = {
+        work: GET_REQUESTS,
+        uid: uid,
+    };
+    addTask(taskData, res);
+};
  
-  export {getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+const getContactsUsersAndSettingsHandler = async (req, res) => {
+    console.log("im in getContactsUsersAndSettingsHandler\n");
+
+    let uid = req.params.uid;
+
+    console.log("id = " + uid);
+
+    const taskData = {
+        work: GET_CONTACTS_USERS_AND_ACCOUNTS,
+        uid: uid,
+    };
+    addTask(taskData, res);
+};
+
+const getFollowingUsersAndAccountsHandler = async (req, res) => {
+    console.log("im in getContactsUsersAndSettingsHandler\n");
+
+    let uid = req.params.uid;
+
+    console.log("id = " + uid);
+
+    const taskData = {
+        work: GET_FOLLOWINGS_USERS_AND_ACCOUNTS,
+        uid: uid,
+    };
+    addTask(taskData, res);
+};
+ 
+
+  export {getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};

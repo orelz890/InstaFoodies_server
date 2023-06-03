@@ -413,8 +413,8 @@ const getFollowings = async (taskData) => {
 
     await db.collection("users_account_settings").doc(uid).get()
     .then(doc => {
-        console.log("ref= " + ref)
-        console.log("following_ids= " + doc.data().following_ids)
+        // console.log("ref= " + ref)
+        // console.log("following_ids= " + doc.data().following_ids)
         if (doc.exists) {
             doc.data().following_ids.forEach(element => {
                 followings_list_ids.push(element);
@@ -434,12 +434,12 @@ const getFollowings = async (taskData) => {
     // Iterate over the elements using a for loop
     for (let i = 0; i < followings_list_ids.length; i++) {
         const id = followings_list_ids[i];
-        console.log("id(" + i + "): " + id);
+        // console.log("id(" + i + "): " + id);
 
         await db.collection(ref).doc(id).get()
         .then(doc => {
-            console.log("ref= " + ref)
-            console.log("collection= " + doc.data())
+            // console.log("ref= " + ref)
+            // console.log("collection= " + doc.data())
             if (doc.exists) {
                 followings_list.push(doc.data())
             } else {
@@ -465,10 +465,10 @@ const getContacts = async (taskData) => {
     
     await ref.once('value')
         .then((snapshot) => {
-            console.log('snapshot = ' + snapshot.val())
+            // console.log('snapshot = ' + snapshot.val())
         snapshot.forEach((childSnapshot) => {
             const id = childSnapshot.key.slice();;
-            console.log("id?? = " + id);
+            // console.log("id?? = " + id);
             contacts_list.push(id);
         });
     })
@@ -476,15 +476,245 @@ const getContacts = async (taskData) => {
       console.error('Error fetching data:', error);
     });
 
-    console.log("contacts_list = " + contacts_list)
+    // console.log("contacts_list = " + contacts_list)
     
     const task = {
         following_ids: contacts_list,
+        uid: uid,
         ref: taskData.ref
     };
 
     getFollowings(task);
 };
+
+
+
+const getRequests = async (taskData) => {
+    console.log(" ======================== im in getRequests ==========================\n")
+    const { uid } = taskData;
+    const requests_list_ids = [];
+    const requestTypes = [];
+    const users = [];
+    const accountSettings = [];
+
+    const dbReal = admin.database();
+    const ref = dbReal.ref('Chat Requests').child(uid);
+    
+    await ref.once('value')
+        .then((snapshot) => {
+            console.log('getRequests snapshot = ' + snapshot.val())
+        snapshot.forEach((childSnapshot) => {
+            const id = childSnapshot.key.slice();
+            const value = childSnapshot.val();
+            const nestedType = value.request_type;
+            console.log("getRequests id?? = " + id);
+            console.log("getRequests type?? = " + nestedType);
+            requests_list_ids.push(id);
+            requestTypes.push(nestedType);
+        });
+    })
+    .catch((error) => {
+      console.error('Error fetching data:', error);
+    });
+
+    for (let i = 0; i < requests_list_ids.length; i++) {
+        const id = requests_list_ids[i];
+        console.log("id(" + i + "): " + id);
+
+        await db.collection("users").doc(id).get()
+        .then(async doc => {
+            console.log("User collection= " + doc.data())
+            if (doc.exists) {
+                users.push(doc.data())
+                await db.collection("users_account_settings").doc(id).get()
+                .then(doc => {
+                    console.log("Settings collection= " + doc.data())
+                    if (doc.exists) {
+                        accountSettings.push(doc.data())
+                        
+                    } else {
+                        console.log('getRequests: Account Document not found!');
+                    }
+                }).catch(error => {
+                    console.log('getRequests: Error getting Account document:', error);
+                });
+
+            } else {
+                console.log('getRequests: User Document not found!');
+            }
+        }).catch(error => {
+            console.log('getRequests: Error getting User document:', error);
+        });
+    }
+
+    console.log("\n\n" + users[0].full_name + "\n\n");
+    
+    const data = {
+        success: true,
+        users: users,
+        accountSettings: accountSettings,
+        responseTypes: requestTypes
+      };
+
+    const jsonData = JSON.stringify(data);
+    console.log(jsonData);
+
+
+    parentPort.postMessage({
+        success: true,
+        data: jsonData
+      });
+
+    console.log(" ======================== out of getRequests ==========================\n")
+};
+
+
+const getContactsUsersAndSettings = async (taskData) => {
+    console.log(" ======================== im in getContactsUsersAndSettings ==========================\n")
+    const { uid } = taskData;
+    const requests_list_ids = [];
+    const users = [];
+    const accountSettings = [];
+
+    const dbReal = admin.database();
+    const ref = dbReal.ref('Contacts').child(uid);
+    
+    await ref.once('value')
+        .then((snapshot) => {
+            console.log('getRequests snapshot = ' + snapshot.val())
+        snapshot.forEach((childSnapshot) => {
+            const id = childSnapshot.key.slice();
+            requests_list_ids.push(id);
+        });
+    })
+    .catch((error) => {
+      console.error('Error fetching data:', error);
+    });
+
+    for (let i = 0; i < requests_list_ids.length; i++) {
+        const id = requests_list_ids[i];
+        console.log("id(" + i + "): " + id);
+
+        await db.collection("users").doc(id).get()
+        .then(async doc => {
+            console.log("User collection= " + doc.data())
+            if (doc.exists) {
+                users.push(doc.data())
+                await db.collection("users_account_settings").doc(id).get()
+                .then(doc => {
+                    console.log("Settings collection= " + doc.data())
+                    if (doc.exists) {
+                        accountSettings.push(doc.data())
+                        
+                    } else {
+                        console.log('getRequests: Account Document not found!');
+                    }
+                }).catch(error => {
+                    console.log('getRequests: Error getting Account document:', error);
+                });
+
+            } else {
+                console.log('getRequests: User Document not found!');
+            }
+        }).catch(error => {
+            console.log('getRequests: Error getting User document:', error);
+        });
+    }
+
+    console.log("\n\n" + users[0].full_name + "\n\n");
+    
+    const data = {
+        success: true,
+        users: users,
+        accountSettings: accountSettings,
+      };
+
+    const jsonData = JSON.stringify(data);
+    console.log(jsonData);
+
+
+    parentPort.postMessage({
+        success: true,
+        data: jsonData
+      });
+
+    console.log(" ======================== out of getContactsUsersAndSettings ==========================\n")
+
+};
+
+
+
+const getFollowingUsersAndAccounts = async (taskData) => {
+    console.log(" ======================== im in getContactsUsersAndSettings ==========================\n")
+    const { uid } = taskData;
+    const followings_list_ids = [];
+    const users = [];
+    const accountSettings = [];
+
+    await db.collection("users_account_settings").doc(uid).get()
+    .then(doc => {
+        if (doc.exists) {
+            doc.data().following_ids.forEach(element => {
+                followings_list_ids.push(element);
+            });
+        } else {
+            console.log('getUserHendler: Document not found!');
+        }
+    }).catch(error => {
+        console.log('getUserHendler: Error getting document:', error);
+    });
+
+    for (let i = 0; i < followings_list_ids.length; i++) {
+        const id = followings_list_ids[i];
+        console.log("id(" + i + "): " + id);
+
+        await db.collection("users").doc(id).get()
+        .then(async doc => {
+            console.log("User collection= " + doc.data())
+            if (doc.exists) {
+                users.push(doc.data())
+                await db.collection("users_account_settings").doc(id).get()
+                .then(doc => {
+                    console.log("Settings collection= " + doc.data())
+                    if (doc.exists) {
+                        accountSettings.push(doc.data())
+                        
+                    } else {
+                        console.log('getRequests: Account Document not found!');
+                    }
+                }).catch(error => {
+                    console.log('getRequests: Error getting Account document:', error);
+                });
+
+            } else {
+                console.log('getRequests: User Document not found!');
+            }
+        }).catch(error => {
+            console.log('getRequests: Error getting User document:', error);
+        });
+    }
+
+    console.log("\n\n" + users[0].full_name + "\n\n");
+    
+    const data = {
+        success: true,
+        users: users,
+        accountSettings: accountSettings,
+      };
+
+    const jsonData = JSON.stringify(data);
+    console.log(jsonData);
+
+
+    parentPort.postMessage({
+        success: true,
+        data: jsonData
+      });
+
+    console.log(" ======================== out of getContactsUsersAndSettings ==========================\n")
+
+};
+
 
 
 
@@ -533,6 +763,15 @@ while (true) {
             break;
         case 'getContacts':
             result = await getContacts(message.data);
+            break;
+        case 'getRequests':
+            result = await getRequests(message.data);
+            break;
+        case 'getContactsUsersAndSettings':
+            result = await getContactsUsersAndSettings(message.data);
+            break;
+        case 'getFollowingUsersAndAccounts':
+            result = await getFollowingUsersAndAccounts(message.data);
             break;
         default:
           break;

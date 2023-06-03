@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import {getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -146,13 +146,14 @@ app.get('/checkUserName/:username', executeCheckUserNameHandler)
 /**
  * Create a new chat group for a user. 
  * @param name {@code string}
+ * @param uid {@code string}
  * @returns boolean
  */
 app.post('/createNewChatGroup/:uid/:name', createNewChatGroupHandler)
 
 /**
  * Create a new chat group for a user. 
- * @param name {@code string}
+ * @param uid {@code string}
  * @returns boolean
  */
 app.get('/getUserChatGroups/:uid', getChatGroupHandler)
@@ -160,7 +161,7 @@ app.get('/getUserChatGroups/:uid', getChatGroupHandler)
 
 /**
  * Get all the user followings users. 
- * @param name {@code string}
+ * @param uid {@code string}
  * @returns List of U
  */
 app.get('/getFollowingUsers/:uid', (req, res) => { 
@@ -169,7 +170,7 @@ app.get('/getFollowingUsers/:uid', (req, res) => {
 
   /**
  * Get all the user followings users. 
- * @param name {@code string}
+ * @param uid {@code string}
  * @returns List of U
  */
 app.get('/getFollowingUsersAccountSettings/:uid', (req, res) => { 
@@ -179,7 +180,7 @@ app.get('/getFollowingUsersAccountSettings/:uid', (req, res) => {
 
   /**
  * Get all the user contacts users. 
- * @param name {@code string}
+ * @param uid {@code string}
  * @returns List of Users
  */
 app.get('/getContactsUsers/:uid', (req, res) => { 
@@ -189,14 +190,45 @@ app.get('/getContactsUsers/:uid', (req, res) => {
 
   /**
  * Get all the user contacts settings. 
- * @param name {@code string}
+ * @param uid {@code string}
  * @returns List of Account settings
  */
   app.get('/getContactsSettings/:uid', (req, res) => { 
     getContactsHandler(req, res, "users_account_settings")})
 
+
+    /**
+ * Get all the Requests. 
+ * @param uid {@code string}
+ * @returns List of Account settings
+ */
+    app.get('/getFollowingUsersAndAccounts/:uid', (req, res) => { 
+      getFollowingUsersAndAccountsHandler(req, res)})
+  
+  
+    /**
+ * Get all the Requests. 
+ * @param uid {@code string}
+ * @returns List of Account settings
+ */
+    app.get('/getContactsUsersAndSettings/:uid', (req, res) => { 
+      getContactsUsersAndSettingsHandler(req, res)})
+  
     
     
+  /**
+ * Get all the Requests. 
+ * @param uid {@code string}
+ * @returns List of Account settings
+ */
+  app.get('/getRequests/:uid', (req, res) => { 
+    getRequestsHandler(req, res)})
+
+    
+
+
+
+
 /* Start to listen
    If planning to deploy this app to cloud application some times the port is not 8080 by defualt so it will take whatever port that is open for there case.
 */
