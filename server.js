@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import {getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -225,7 +225,15 @@ app.get('/getContactsUsers/:uid', (req, res) => {
     getRequestsHandler(req, res)})
 
     
+  /**
+ * Get both the user and his account settings. 
+ * @param uid {@code string}
+ * @returns User & UserAccountSettings
+ */
+  app.get('/getBothUserAndHisSettings/:uid', (req, res) => { 
+    getBothUserAndHisSettingsHandler(req, res)})
 
+    
 
 
 

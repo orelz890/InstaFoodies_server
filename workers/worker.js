@@ -41,14 +41,17 @@ const signup = async (taskData) => {
 
     try {
         console.log("im in signup!!");
-        const { email, username, full_name ,phone_number, id, following_ids} = taskData;
+        const { email, username, full_name ,phone_number, id, following_ids, state, date, time} = taskData;
         const newUserJson = {
             user_id: id,
             username: username,
             full_name: full_name,
             email: email,
             phone_number: phone_number,
-            full_name: full_name
+            following_ids: following_ids,
+            state: state,
+            date: date,
+            time: time
         };
 
         const my_list = [];
@@ -192,7 +195,7 @@ const updateUser = async (ref,email,data) =>{
 
 
 const patchUser = async (taskData) => {
-    const {email, uid, password, phone_number, username, full_name ,ref} = taskData;
+    const {email, uid, password, phone_number, username, full_name, state, date, time ,ref} = taskData;
 
     console.log("in patchUser: " , email, password, username);
     db.collection(ref).doc(uid).get()
@@ -213,7 +216,10 @@ const patchUser = async (taskData) => {
                         email: data.email,
                         phone_number: phone_number || data.phone_number,
                         username: username || data.username,
-                        full_name: full_name || data.full_name
+                        full_name: full_name || data.full_name,
+                        state: state || data.state,
+                        date: date || data.date,
+                        time: time || data.time
                     };
                     // console.log("newGuy= ", newUserJson);
                     updateUser(ref,email,newUserJson)
@@ -232,7 +238,10 @@ const patchUser = async (taskData) => {
                     email: data.email,
                     phone_number: phone_number || data.phone_number,
                     username: username || data.username,
-                    full_name: full_name || data.full_name
+                    full_name: full_name || data.full_name,
+                    state: state || data.state,
+                    date: date || data.date,
+                    time: time || data.time
 
                 };
                 // console.log("newGuy= ", newUserJson);
@@ -547,7 +556,7 @@ const getRequests = async (taskData) => {
         });
     }
 
-    console.log("\n\n" + users[0].full_name + "\n\n");
+    // console.log("\n\n" + users[0].full_name + "\n\n");
     
     const data = {
         success: true,
@@ -581,7 +590,7 @@ const getContactsUsersAndSettings = async (taskData) => {
     
     await ref.once('value')
         .then((snapshot) => {
-            console.log('getRequests snapshot = ' + snapshot.val())
+            console.log('getContactsUsersAndSettings snapshot = ' + snapshot.val())
         snapshot.forEach((childSnapshot) => {
             const id = childSnapshot.key.slice();
             requests_list_ids.push(id);
@@ -607,21 +616,21 @@ const getContactsUsersAndSettings = async (taskData) => {
                         accountSettings.push(doc.data())
                         
                     } else {
-                        console.log('getRequests: Account Document not found!');
+                        console.log('getContactsUsersAndSettings: Account Document not found!');
                     }
                 }).catch(error => {
-                    console.log('getRequests: Error getting Account document:', error);
+                    console.log('getContactsUsersAndSettings: Error getting Account document:', error);
                 });
 
             } else {
-                console.log('getRequests: User Document not found!');
+                console.log('getContactsUsersAndSettings: User Document not found!');
             }
         }).catch(error => {
-            console.log('getRequests: Error getting User document:', error);
+            console.log('getContactsUsersAndSettings: Error getting User document:', error);
         });
     }
 
-    console.log("\n\n" + users[0].full_name + "\n\n");
+    // console.log("\n\n" + users[0].full_name + "\n\n");
     
     const data = {
         success: true,
@@ -645,7 +654,7 @@ const getContactsUsersAndSettings = async (taskData) => {
 
 
 const getFollowingUsersAndAccounts = async (taskData) => {
-    console.log(" ======================== im in getContactsUsersAndSettings ==========================\n")
+    console.log(" ======================== im in getFollowingUsersAndAccounts ==========================\n")
     const { uid } = taskData;
     const followings_list_ids = [];
     const users = [];
@@ -658,10 +667,10 @@ const getFollowingUsersAndAccounts = async (taskData) => {
                 followings_list_ids.push(element);
             });
         } else {
-            console.log('getUserHendler: Document not found!');
+            console.log('getFollowingUsersAndAccounts: Document not found!');
         }
     }).catch(error => {
-        console.log('getUserHendler: Error getting document:', error);
+        console.log('getFollowingUsersAndAccounts: Error getting document:', error);
     });
 
     for (let i = 0; i < followings_list_ids.length; i++) {
@@ -680,21 +689,21 @@ const getFollowingUsersAndAccounts = async (taskData) => {
                         accountSettings.push(doc.data())
                         
                     } else {
-                        console.log('getRequests: Account Document not found!');
+                        console.log('getFollowingUsersAndAccounts: Account Document not found!');
                     }
                 }).catch(error => {
-                    console.log('getRequests: Error getting Account document:', error);
+                    console.log('getFollowingUsersAndAccounts: Error getting Account document:', error);
                 });
 
             } else {
-                console.log('getRequests: User Document not found!');
+                console.log('getFollowingUsersAndAccounts: User Document not found!');
             }
         }).catch(error => {
-            console.log('getRequests: Error getting User document:', error);
+            console.log('getFollowingUsersAndAccounts: Error getting User document:', error);
         });
     }
 
-    console.log("\n\n" + users[0].full_name + "\n\n");
+    // console.log("\n\n" + users[0].full_name + "\n\n");
     
     const data = {
         success: true,
@@ -711,10 +720,60 @@ const getFollowingUsersAndAccounts = async (taskData) => {
         data: jsonData
       });
 
-    console.log(" ======================== out of getContactsUsersAndSettings ==========================\n")
+    console.log(" ======================== out of getFollowingUsersAndAccounts ==========================\n")
 
 };
 
+
+
+const getBothUserAndHisSettings = async (taskData) => {
+    console.log(" ======================== im in getBothUserAndHisSettings ==========================\n")
+    const { uid } = taskData;
+
+    await db.collection("users").doc(uid).get()
+    .then(async doc => {
+        // console.log("User collection= " + doc.data())
+        if (doc.exists) {
+            const user = doc.data();
+            await db.collection("users_account_settings").doc(uid).get()
+            .then(doc2 => {
+                // console.log("Settings collection= " + doc.data())
+                if (doc.exists) {
+                    const settings = doc2.data();
+
+                    const data = {
+                        success: true,
+                        user: user,
+                        accountSettings: doc2.data(),
+                      };
+                      const jsonData = JSON.stringify(data);
+                      console.log(jsonData);
+
+                      parentPort.postMessage({
+                        success: true,
+                        data: jsonData
+                      });
+                } else {
+                    console.log('getBothUserAndHisSettings: Account Document not found!');
+                    parentPort.postMessage({ success: false, error: "Account Document not found!"});
+                }
+            }).catch(error => {
+                console.log('getBothUserAndHisSettings: Error getting Account document:', error);
+                parentPort.postMessage({ success: false, error: "Error: " + error });
+            });
+
+        } else {
+            console.log('getBothUserAndHisSettings: User Document not found!');
+            parentPort.postMessage({ success: false, error: "User Document not found!"});
+        }
+    }).catch(error => {
+        console.log('getBothUserAndHisSettings: Error getting User document:', error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    });
+    
+    console.log(" ======================== out of getBothUserAndHisSettings ==========================\n")
+
+};
 
 
 
@@ -772,6 +831,9 @@ while (true) {
             break;
         case 'getFollowingUsersAndAccounts':
             result = await getFollowingUsersAndAccounts(message.data);
+            break;
+        case 'getBothUserAndHisSettings':
+            result = await getBothUserAndHisSettings(message.data);
             break;
         default:
           break;

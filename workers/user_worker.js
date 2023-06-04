@@ -15,6 +15,7 @@ const GET_CONTACTS = 10;
 const GET_REQUESTS = 11;
 const GET_CONTACTS_USERS_AND_ACCOUNTS = 12;
 const GET_FOLLOWINGS_USERS_AND_ACCOUNTS = 13;
+const GET_BOTH_USER_AND_ACCOUNT = 14;
 
 
 
@@ -77,6 +78,9 @@ class user_worker {
                 break;
             case GET_FOLLOWINGS_USERS_AND_ACCOUNTS:
                 this.worker.postMessage({ type: 'getFollowingUsersAndAccounts', data: taskData });
+                break;
+            case GET_BOTH_USER_AND_ACCOUNT:
+                this.worker.postMessage({ type: 'getBothUserAndHisSettings', data: taskData });
                 break;
             default:
                 break;

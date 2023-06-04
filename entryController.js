@@ -21,6 +21,7 @@ const GET_CONTACTS = 10;
 const GET_REQUESTS = 11;
 const GET_CONTACTS_USERS_AND_ACCOUNTS = 12;
 const GET_FOLLOWINGS_USERS_AND_ACCOUNTS = 13;
+const GET_BOTH_USER_AND_ACCOUNT = 14;
 
 
 
@@ -93,10 +94,12 @@ const signupHendler = async (req, res) => {
         username: req.body.username || "none",
         full_name: req.body.full_name || "none",
         phone_number: req.body.phone_number || "none",
-        following_ids: req.body.following_ids
+        following_ids: req.body.following_ids,
+        state: req.body.state || "online",
+        date: req.body.date || "",
+        time: req.body.time || ""
     };
     addTask(taskData, res);
-
 };
 
 const loginHendler = async (req, res) => {
@@ -255,7 +258,7 @@ const getContactsUsersAndSettingsHandler = async (req, res) => {
 };
 
 const getFollowingUsersAndAccountsHandler = async (req, res) => {
-    console.log("im in getContactsUsersAndSettingsHandler\n");
+    console.log("im in getFollowingUsersAndAccountsHandler\n");
 
     let uid = req.params.uid;
 
@@ -267,6 +270,21 @@ const getFollowingUsersAndAccountsHandler = async (req, res) => {
     };
     addTask(taskData, res);
 };
+
+
+const getBothUserAndHisSettingsHandler = async (req, res) => {
+    console.log("im in getBothUserAndHisSettingsHandler\n");
+
+    let uid = req.params.uid;
+
+    console.log("id = " + uid);
+
+    const taskData = {
+        work: GET_BOTH_USER_AND_ACCOUNT,
+        uid: uid,
+    };
+    addTask(taskData, res);
+};
  
 
-  export {getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+  export {getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
