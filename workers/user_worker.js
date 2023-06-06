@@ -18,6 +18,9 @@ const GET_FOLLOWINGS_USERS_AND_ACCOUNTS = 13;
 const GET_BOTH_USER_AND_ACCOUNT = 14;
 const UPLOAD_PROFILE_PHOTO = 15;
 const UPLOAD_POST = 16;
+const GET_USER_FEED = 17;
+const GET_USER_PROFILE_FEED = 18;
+
 
 
 
@@ -89,6 +92,12 @@ class user_worker {
                 break;
             case UPLOAD_POST:
                 this.worker.postMessage({ type: 'uploadNewPost', data: taskData });
+                break;
+            case GET_USER_FEED:
+                this.worker.postMessage({ type: 'getUserFeedPosts', data: taskData });
+                break;
+            case GET_USER_PROFILE_FEED:
+                this.worker.postMessage({ type: 'getProfileFeedPosts', data: taskData });
                 break;
             default:
                 break;

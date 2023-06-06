@@ -24,6 +24,8 @@ const GET_FOLLOWINGS_USERS_AND_ACCOUNTS = 13;
 const GET_BOTH_USER_AND_ACCOUNT = 14;
 const UPLOAD_PROFILE_PHOTO = 15;
 const UPLOAD_POST = 16;
+const GET_USER_FEED = 17;
+const GET_USER_PROFILE_FEED = 18;
 
 
 
@@ -158,6 +160,7 @@ const patchUserAccountSettingsHandler = async (req, res, ref) => {
         posts: req.body.posts,
         website: req.body.website,
         following_ids: req.body.following_ids,
+        followers_ids: req.body.followers_ids,
         ref: ref
     };
     addTask(taskData, res);
@@ -309,11 +312,6 @@ const uploadProfilePhotoHandler = async (req, res) => {
 const uploadNewPostHandler = async (req, res) => {
     console.log("im in uploadProfilePhotoHandler\n");
 
-    // let receipe = req.body.recipe;
-    // const jsonData = JSON.stringify(receipe);
-    // console.log(jsonData);
-
-
     let uid = req.params.uid;
 
     console.log("id = " + uid);
@@ -330,6 +328,36 @@ const uploadNewPostHandler = async (req, res) => {
     };
     addTask(taskData, res);
 };
+
+
+const getUserFeedPostsHandler = async (req, res) => {
+    console.log("im in getUserFeedPostsHandler\n");
+
+    let uid = req.params.uid;
+
+    console.log("id = " + uid);
+
+    const taskData = {
+        work: GET_USER_FEED,
+        uid: uid
+    };
+    addTask(taskData, res);
+};
+
+
+const getProfileFeedPostsHandler = async (req, res) => {
+    console.log("im in getUserFeedPostsHandler\n");
+
+    let uid = req.params.uid;
+
+    console.log("id = " + uid);
+
+    const taskData = {
+        work: GET_USER_PROFILE_FEED,
+        uid: uid
+    };
+    addTask(taskData, res);
+};
  
 
-  export {uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+  export {getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};

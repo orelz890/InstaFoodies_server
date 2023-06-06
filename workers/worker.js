@@ -65,6 +65,7 @@ const signup = async (taskData) => {
             posts: 0,
             website: "none",
             following_ids: [],
+            followers_ids: []
         };
     
         await db.collection(ref2).doc(id).set(newUserAccountSettingsJson);
@@ -232,7 +233,7 @@ const patchUser = async (taskData) => {
 
 const patchUserAccountSettings = async (taskData) => {
     const {email, uid, description, profile_photo, isBusiness, followers, following,
-        posts, website, following_ids ,ref} = taskData;
+        posts, website, following_ids ,followers_ids ,ref} = taskData;
 
     // console.log("in patchUserAccountSettings: " , email, username);
     await db.collection(ref).doc(uid).get()
@@ -249,7 +250,9 @@ const patchUserAccountSettings = async (taskData) => {
                 following: following || data.following,
                 posts: posts || data.posts,
                 website: website || data.website,
-                following_ids: following_ids || data.following_ids
+                following_ids: following_ids || data.following_ids,
+                followers_ids: followers_ids || data.followers_ids
+
             };
             // console.log("newGuy= ", newUserJson);
             updateUser(ref,email,newUserJson)
@@ -264,7 +267,9 @@ const patchUserAccountSettings = async (taskData) => {
                 following: following || 0,
                 posts: posts || 0,
                 website: website || "none",
-                following_ids: following_ids
+                following_ids: following_ids || [],
+                followers_ids: followers_ids || []
+
             };
             // console.log("newGuy= ", newUserJson);
             updateUser(ref,email,newUserJson)
@@ -715,7 +720,7 @@ const getBothUserAndHisSettings = async (taskData) => {
                     const data = {
                         success: true,
                         user: user,
-                        accountSettings: doc2.data(),
+                        settings: settings,
                       };
                       const jsonData = JSON.stringify(data);
                       console.log(jsonData);
@@ -781,10 +786,29 @@ const getObjectFromRef = async (data) => {
 
 
 
-const updateFollowersFeeds = async (uid, ref) => {
+const updateFollowersFeeds = async (uid, post_id, ref) => {
 
-    // await db.collection()
-    
+    let followers_ids = [];
+    await db.collection("users_account_settings").doc(uid).get()
+    .then(async (doc) => {
+        if(doc.exists){
+            followers_ids = doc.data().followers_ids; // Replace "fieldName" with the name of the field you want to retrieve
+        }
+    })
+    .catch((error) => {
+        console.log("\n\nupdateFollowersFeeds - Error1111: " + error + "\n\n");
+        return error;
+    });
+
+    followers_ids.push(uid);
+
+    for (let i = 0; i < followers_ids.length; i++) {
+        const id = followers_ids[i];
+        console.log("id(" + i + "): " + id);
+        saveRef("users_feeds/" + id + "/feed/" + post_id, ref);
+    }
+
+    return "success";
 }
 
 
@@ -796,28 +820,13 @@ const uploadNewPost = async (taskData) => {
     const postRef = db.collection("users_posts").doc(user_id).collection("posts").doc(post_id);
     postRef.set(post).then(() => {
         console.log("\nuploadNewPost - post Added successfully!\n");
-        updateFollowersFeeds(user_id, postRef);
+        updateFollowersFeeds(user_id, post_id, postRef);
+        parentPort.postMessage({ success: true, data: "Success" });
     })
     .catch((error) => {
         console.log("\nuploadNewPost - Error: " + error + "\n");
+        parentPort.postMessage({ success: false, error: "Error: " + error });
     });
-
-
-
-
-
-    //     saveRef("utils/try", db.collection("users").doc("9MtMBVsif8g4R49jrtqXpIEUEvx2"));
-
-
-    // await db.collection("utils").doc("try").get()
-    // .then(async (doc) => {
-    //     const ans = getObjectFromRef(doc.data());
-    //     const jsonData2 = JSON.stringify(ans);
-    //     console.log(jsonData2);
-    // })
-    // .catch((error) => {
-    //     console.log("\n\nuploadProfilePhoto - Error1111: " + error + "\n\n");
-    // });
 
 }
 
@@ -829,7 +838,6 @@ const uploadProfilePhoto = async (taskData) => {
 
     const { uid, image_uri } = taskData;
 
-
     await db.collection("users_account_settings").doc(uid).update({profile_photo: image_uri})
     .then(() => {
         console.log('Value set to Firestore document successfully');
@@ -840,15 +848,145 @@ const uploadProfilePhoto = async (taskData) => {
         parentPort.postMessage({ success: false, error: "Error in uploadProfilePhoto: " + error });
     });
 
-
-
-
-
     console.log(" ======================== out of uploadProfilePhoto ==========================\n")
-
 };
 
   
+
+const getUserFeedPosts = async (taskData) => {
+
+    const { uid } = taskData;
+
+    let posts = [];
+    const collectionRef = db.collection("users_feeds").doc(uid).collection("feed");
+    const snapshot = await collectionRef.get();
+    
+    if (!snapshot.empty) {
+      snapshot.forEach((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+
+          const post = getObjectFromRef(data)
+          posts.push(post);
+        }
+      });
+    } else {
+      console.log("No posts found in the collection");
+    }
+
+    await db.collection("users").doc(uid).get()
+    .then(async doc => {
+        // console.log("User collection= " + doc.data())
+        if (doc.exists) {
+            const user = doc.data();
+            await db.collection("users_account_settings").doc(uid).get()
+            .then(doc2 => {
+                // console.log("Settings collection= " + doc.data())
+                if (doc.exists) {
+                    const settings = doc2.data();
+
+                    const data = {
+                        success: true,
+                        user: user,
+                        account: settings,
+                        posts: posts
+                      };
+                      const jsonData = JSON.stringify(data);
+                      console.log(jsonData);
+
+                      parentPort.postMessage({
+                        success: true,
+                        data: jsonData
+                      });
+                } else {
+                    console.log('getUserFeedPosts: Account Document not found!');
+                    parentPort.postMessage({ success: false, error: "Account Document not found!"});
+                }
+            }).catch(error => {
+                console.log('getUserFeedPosts: Error getting Account document:', error);
+                parentPort.postMessage({ success: false, error: "Error: " + error });
+            });
+
+        } else {
+            console.log('getUserFeedPosts: User Document not found!');
+            parentPort.postMessage({ success: false, error: "User Document not found!"});
+        }
+    }).catch(error => {
+        console.log('getUserFeedPosts: Error getting User document:', error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    });
+
+}    
+
+
+
+const getProfileFeedPosts = async (taskData) => {
+
+    const { uid } = taskData;
+
+    let posts = [];
+    const collectionRef = db.collection("users_posts").doc(uid).collection("posts");
+    const snapshot = await collectionRef.get();
+    
+    if (!snapshot.empty) {
+      snapshot.forEach((doc) => {
+        if (doc.exists) {
+          const data = doc.data();
+          const jsonData = JSON.stringify(data);
+          console.log(jsonData + "\n\n");
+
+        //   const post = getObjectFromRef(data)
+          posts.push(data);
+        }
+      });
+    } else {
+      console.log("No posts found in the collection");
+    }
+
+    await db.collection("users").doc(uid).get()
+    .then(async doc => {
+        // console.log("User collection= " + doc.data())
+        if (doc.exists) {
+            const user = doc.data();
+            await db.collection("users_account_settings").doc(uid).get()
+            .then(doc2 => {
+                // console.log("Settings collection= " + doc.data())
+                if (doc.exists) {
+                    const settings = doc2.data();
+
+                    const data = {
+                        success: true,
+                        user: user,
+                        account: settings,
+                        posts: posts
+                      };
+                      const jsonData = JSON.stringify(data);
+                      console.log(jsonData);
+
+                      parentPort.postMessage({
+                        success: true,
+                        data: jsonData
+                      });
+                } else {
+                    console.log('getProfileFeedPosts: Account Document not found!');
+                    parentPort.postMessage({ success: false, error: "Account Document not found!"});
+                }
+            }).catch(error => {
+                console.log('getProfileFeedPosts: Error getting Account document:', error);
+                parentPort.postMessage({ success: false, error: "Error: " + error });
+            });
+
+        } else {
+            console.log('getProfileFeedPosts: User Document not found!');
+            parentPort.postMessage({ success: false, error: "User Document not found!"});
+        }
+    }).catch(error => {
+        console.log('getProfileFeedPosts: Error getting User document:', error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    });
+
+}    
+    
 
 
 while (true) {
@@ -914,6 +1052,12 @@ while (true) {
             break;
         case 'uploadNewPost':
             result = await uploadNewPost(message.data);
+            break;
+        case 'getUserFeedPosts':
+            result = await getUserFeedPosts(message.data);
+            break;
+        case 'getProfileFeedPosts':
+            result = await getProfileFeedPosts(message.data);
             break;
         default:
           break;

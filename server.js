@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import {uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -235,23 +235,42 @@ app.get('/getContactsUsers/:uid', (req, res) => {
 
     
   /**
- * Get both the user and his account settings. 
+ * Upload Profile Photo. 
  * @param uid {@code string}
- * @returns User & UserAccountSettings
+ * @param image_uri {@code string}
+ * @returns none
  */
   app.patch('/uploadProfilePhoto/:uid/:image_uri', (req, res) => { 
     uploadProfilePhotoHandler(req, res)})
 
     
   /**
- * Get both the user and his account settings. 
+ * Upload New Post. 
  * @param uid {@code string}
- * @returns User & UserAccountSettings
+ * @returns none
  */
   app.patch('/uploadNewPost/:uid', (req, res) => { 
     uploadNewPostHandler(req, res)})
 
-    
+
+  /**
+ * get User Feed Posts for the front page of the app. 
+ * @param uid {@code string}
+ * @returns User & UserAccountSettings
+ */
+  app.get('/getUserFeedPosts/:uid', (req, res) => { 
+    getUserFeedPostsHandler(req, res)})
+
+
+  /**
+ * Get both the user and his account settings. 
+ * @param uid {@code string}
+ * @returns User & UserAccountSettings
+ */
+  app.get('/getProfileFeedPosts/:uid', (req, res) => { 
+    getProfileFeedPostsHandler(req, res)})
+
+
 
 
 /* Start to listen
