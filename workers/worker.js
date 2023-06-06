@@ -1,5 +1,5 @@
 import { parentPort, workerData } from 'worker_threads';
-import { app, admin, db } from '../config/firebase.js';
+import { bucket, app, admin, db } from '../config/firebase.js';
 import bcrypt from'bcryptjs';
 import { getAuth, sendSignInLinkToEmail } from "firebase/auth";
 
@@ -39,69 +39,60 @@ function deleteUserAuth(uid){
 
 const signup = async (taskData) => {
 
-    try {
-        console.log("im in signup!!");
-        const { email, username, full_name ,phone_number, id, following_ids, state, date, time} = taskData;
-        const newUserJson = {
-            user_id: id,
-            username: username,
-            full_name: full_name,
-            email: email,
-            phone_number: phone_number,
-            following_ids: following_ids,
-            state: state,
-            date: date,
-            time: time
+    const { email, username, full_name ,phone_number, id, following_ids, state, date, time} = taskData;
+    const newUserJson = {
+        user_id: id,
+        username: username,
+        full_name: full_name,
+        email: email,
+        phone_number: phone_number,
+        state: state,
+        date: date,
+        time: time,
+    };
+
+    // Add the new user to the users doc in firestore
+    await db.collection("users").doc(id).set(newUserJson)
+    .then(async () => {
+        // console.log("newGuy= ", newUserJson);
+        const ref2 = "users_account_settings";
+        const newUserAccountSettingsJson = {
+            description: "none",
+            profile_photo: "none",
+            isBusiness: false,
+            followers: 0,
+            following: 0,
+            posts: 0,
+            website: "none",
+            following_ids: [],
         };
-
-        const my_list = [];
-        // Add the new user to the users doc in firestore
-        await db.collection("users").doc(id).set(newUserJson)
+    
+        await db.collection(ref2).doc(id).set(newUserAccountSettingsJson);
+        await db.collection(ref2).doc(id).get()
         .then(async () => {
-            // console.log("newGuy= ", newUserJson);
-            const ref2 = "users_account_settings";
-            const newUserAccountSettingsJson = {
-                description: "none",
-                profile_photo: "none",
-                isBusiness: false,
-                followers: 0,
-                following: 0,
-                posts: 0,
-                website: "none",
-                following_ids: my_list
-
-            };
-        
-            await db.collection(ref2).doc(id).set(newUserAccountSettingsJson);
-            await db.collection(ref2).doc(id).get()
-            .then(async () => {
-                await db.collection("users").doc(id).get()
-                .then((userDoc) => {
-                    const jsonData = JSON.stringify(userDoc.data());
-                    console.log(jsonData);
-                    console.log("signup: Client " + id + " signed up");
-                    parentPort.postMessage({ success: true, data: jsonData });   
-                })
-                .catch(async (error) => {
-                    await db.collection("users").doc(id).delete();                        
-                    await db.collection("users_account_settings").doc(id).delete();                        
-                    console.log('signup: User creation failed', error);
-                    parentPort.postMessage({ success: false, error: 'User creation failed pleaase try again' });
-                });
+            await db.collection("users").doc(id).get()
+            .then((userDoc) => {
+                const jsonData = JSON.stringify(userDoc.data());
+                console.log(jsonData);
+                console.log("signup: Client " + id + " signed up");
+                parentPort.postMessage({ success: true, data: jsonData });   
             })
             .catch(async (error) => {
                 await db.collection("users").doc(id).delete();                        
+                await db.collection("users_account_settings").doc(id).delete();                        
                 console.log('signup: User creation failed', error);
                 parentPort.postMessage({ success: false, error: 'User creation failed pleaase try again' });
             });
-        }).catch(error =>{
-            console.log('signup: not able to signup set didnt work:', error);
-            parentPort.postMessage({ success: false, error: 'Not able to signup try again with diffrent Credentials'});    
+        })
+        .catch(async (error) => {
+            await db.collection("users").doc(id).delete();                        
+            console.log('signup: User creation failed', error);
+            parentPort.postMessage({ success: false, error: 'User creation failed pleaase try again' });
         });
-    }catch (error) {
-        console.log('signup: Error:', error);
-        parentPort.postMessage({ success: false, error: error });
-    }
+    }).catch(error =>{
+        console.log('signup: not able to signup set didnt work:', error);
+        parentPort.postMessage({ success: false, error: 'Not able to signup try again with diffrent Credentials'});    
+    });
 };
 
 const login = async (taskData) => {
@@ -149,13 +140,13 @@ const getUserHendler = async (taskData) => {
 
     db.collection(ref).doc(uid).get()
     .then(doc => {
-        console.log("ref= " + ref)
-        console.log("log= " + !doc.exists)
-        console.log("collection= " + doc.data())
+        // console.log("ref= " + ref)
+        // console.log("log= " + !doc.exists)
+        // console.log("collection= " + doc.data())
 
         if (doc.exists) {
             const jsonData = JSON.stringify(doc.data());
-            console.log(jsonData);
+            // console.log(jsonData);
             parentPort.postMessage({ success: true, data: jsonData });
         } else {
             console.log('getUserHendler: Document not found!');
@@ -167,30 +158,30 @@ const getUserHendler = async (taskData) => {
     });
 };
 
-const updateUser = async (ref,email,data) =>{
+const updateUser = async (ref,uid,data) =>{
     const newUserJson = {
+        user_id: data.user_id,
+        email: data.email,
+        phone_number: phone_number || data.phone_number,
         username: data.username || "none",
-        description: data.description || "none",
-        display_name: data.display_name || "none",
-        profile_photo: data.profile_photo || "none",
-        isBusiness: data.isBusiness || false,
-        followers: data.followers || 0,
-        following: data.following || 0,
-        posts: data.posts || 0,
-        website: data.website || "none",
+        full_name: data.full_name || "none",
+        state: state || data.state,
+        date: date || data.date,
+        time: time || data.time
     };
 
-    await db.collection(ref).doc(email).set(newUserJson)
+    console.log("ref = " + ref);
+    await db.collection(ref).doc(uid).set(newUserJson)
     .then(() => {
-        console.log("updateUser: Successfully updated " + ref , "{" + email + "}", error.type );
-        parentPort.postMessage({ success: true, data: "updateUser: Successfully updated " + ref + " -{" + email + "}" });
+        console.log("updateUser: Successfully updated " + ref , "{" + uid + "}", error.type );
+        parentPort.postMessage({ success: true, data: "updateUser: Successfully updated " + ref + " -{" + uid + "}" });
     })
     .catch((error) => {
-        console.log("updateUser: Failed to update user " + ref , "{" + email + "}" ,error);
+        console.log("updateUser: Failed to update user " + ref , "{" + uid + "}" ,error);
         parentPort.postMessage({ success: false, error: "updateUser: Failed to update user ",ref  , error });
     });
     // See the UserRecord reference doc for the contents of userRecord.
-    console.log("Successfully updated user", ref ,email);
+    console.log("Successfully updated user", ref ,uid);
 }
 
 
@@ -205,35 +196,11 @@ const patchUser = async (taskData) => {
             const data = JSON.parse(jsonData);
             // console.log(jsonData);
 
-            if(password){
-                await admin.auth().updateUser(data.user_id, {password: password})
-                .then(async (userRecord) => {
-                    const hash = await bcrypt.hash(password, saltRounds);
+            await admin.auth().updateUser(data.user_id, {password: password})
+            .then(async (userRecord) => {
+                const hash = await bcrypt.hash(password, saltRounds);
 
-                    const newUserJson = {
-                        passwordHash: hash,
-                        user_id: data.user_id,
-                        email: data.email,
-                        phone_number: phone_number || data.phone_number,
-                        username: username || data.username,
-                        full_name: full_name || data.full_name,
-                        state: state || data.state,
-                        date: date || data.date,
-                        time: time || data.time
-                    };
-                    // console.log("newGuy= ", newUserJson);
-                    updateUser(ref,email,newUserJson)
-                })
-                .catch(function(error) {
-                    console.log("Error updating user:", error);
-                    parentPort.postMessage({ success: false, error: "patchUser: Error updating user:" + error });
-            
-                });
-            }
-            else{
-                console.log("\nemail====", data.email);
                 const newUserJson = {
-                    passwordHash: data.passwordHash,
                     user_id: data.user_id,
                     email: data.email,
                     phone_number: phone_number || data.phone_number,
@@ -242,11 +209,15 @@ const patchUser = async (taskData) => {
                     state: state || data.state,
                     date: date || data.date,
                     time: time || data.time
-
                 };
                 // console.log("newGuy= ", newUserJson);
-                updateUser(ref,email,newUserJson)
-            }
+                updateUser(ref,data.user_id,newUserJson)
+            })
+            .catch(function(error) {
+                console.log("Error updating user:", error);
+                parentPort.postMessage({ success: false, error: "patchUser: Error updating user:" + error });
+        
+            });
 
         } else {
             console.log('patchUser: Document not found!');
@@ -264,7 +235,7 @@ const patchUserAccountSettings = async (taskData) => {
         posts, website, following_ids ,ref} = taskData;
 
     // console.log("in patchUserAccountSettings: " , email, username);
-    db.collection(ref).doc(uid).get()
+    await db.collection(ref).doc(uid).get()
     .then(async doc => {
         if (doc.exists) {
             const jsonData = JSON.stringify(doc.data());
@@ -404,7 +375,7 @@ const getUserChatGroups = async (taskData) => {
             const group = doc.data();
             groups.push(group.string);
         });
-          console.log("All groups:", groups);
+        //   console.log("All groups:", groups);
           parentPort.postMessage({ success: true, data: groups});
     })
     .catch((error) => {
@@ -664,7 +635,7 @@ const getFollowingUsersAndAccounts = async (taskData) => {
     .then(doc => {
         if (doc.exists) {
             doc.data().following_ids.forEach(element => {
-                followings_list_ids.push(element);
+                followings_list_ids.push(element.replace(/\s/g, ''));
             });
         } else {
             console.log('getFollowingUsersAndAccounts: Document not found!');
@@ -776,6 +747,102 @@ const getBothUserAndHisSettings = async (taskData) => {
 };
 
 
+const uploadProfilePhoto = async (taskData) => {
+    console.log(" ======================== im in uploadProfilePhoto ==========================\n")
+    const { uid, image_uri } = taskData;
+
+
+    await db.collection("users_account_settings").doc(uid).update({profile_photo: image_uri})
+    .then(() => {
+        console.log('Value set to Firestore document successfully');
+        parentPort.postMessage({ success: true, data: "Success"});
+    })
+    .catch((error) => {
+        console.error('Error setting value to Firestore document:', error);
+        parentPort.postMessage({ success: false, error: "Error in uploadProfilePhoto: " + error });
+    });
+ 
+    console.log(" ======================== out of uploadProfilePhoto ==========================\n")
+
+};
+
+
+// async function createFolder(folderName) {
+//     const folderPath = `${folderName}/`;
+//     const file = bucket.file(folderPath);
+//     await file.save('', { metadata: { contentType: 'application/x-www-form-urlencoded' } });
+//     console.log(`Folder '${folderName}' created in Firebase Storage`);
+//   }
+
+async function createFolder(folderName) {
+    const folderPath = `${folderName}/`;
+    const file = bucket.file(folderPath);
+    await file.create();
+    console.log(`Folder '${folderName}' created in Firebase Storage`);
+  }
+  
+  
+//   async function storeUriInStorage(uri, folder, filename) {
+//     try {
+//       // Create the folder if it doesn't exist
+//       await createFolder(folder);
+  
+//       const filePath = `${folder}/${filename}`;
+//       const file = bucket.file(filePath);
+//       var imageBuffer = new Uint8Array(uri);
+//       file.save(imageBuffer, { metadata: { contentType: 'image/png' } });
+  
+//       console.log('URI stored in Firebase Storage successfully');
+//       const expiresAt = new Date();
+//       expiresAt.setFullYear(expiresAt.getFullYear() + 10); // Set expiration to 10 years from now
+      
+//       const [downloadUrl] = await file.getSignedUrl({
+//         action: 'read',
+//         expires: expiresAt
+//       });
+  
+//       console.log('Download URL:', downloadUrl);
+  
+//       return downloadUrl;
+//     } catch (error) {
+//       console.error('Error storing URI in Firebase Storage:', error);
+//       return null;
+//     }
+//   }
+
+async function storeByteArrayInStorage(byteArray, folder, filename) {
+    try {
+      // Create the folder if it doesn't exist
+      await createFolder(folder);
+  
+      const filePath = `${folder}/${filename}`;
+      const file = bucket.file( );
+  
+      // Convert the byte array to a Buffer
+      const buffer = Buffer.from(byteArray);
+  
+      // Upload the Buffer to Firebase Storage
+      await file.save(buffer, { metadata: { contentType: 'image/png' } });
+  
+      console.log('Byte array stored in Firebase Storage successfully');
+  
+      const expiresAt = new Date();
+      expiresAt.setFullYear(expiresAt.getFullYear() + 10); // Set expiration to 10 years from now
+  
+      const [downloadUrl] = await file.getSignedUrl({
+        action: 'read',
+        expires: expiresAt
+      });
+  
+      console.log('Download URL:', downloadUrl);
+  
+      return downloadUrl;
+    } catch (error) {
+      console.error('Error storing byte array in Firebase Storage:', error);
+      return null;
+    }
+  }
+
 
 while (true) {
     // Wait for a message to be received (sleep until then)
@@ -834,6 +901,9 @@ while (true) {
             break;
         case 'getBothUserAndHisSettings':
             result = await getBothUserAndHisSettings(message.data);
+            break;
+        case 'uploadProfilePhoto':
+            result = await uploadProfilePhoto(message.data);
             break;
         default:
           break;

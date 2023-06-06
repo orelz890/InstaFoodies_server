@@ -22,6 +22,8 @@ const GET_REQUESTS = 11;
 const GET_CONTACTS_USERS_AND_ACCOUNTS = 12;
 const GET_FOLLOWINGS_USERS_AND_ACCOUNTS = 13;
 const GET_BOTH_USER_AND_ACCOUNT = 14;
+const UPLOAD_PROFILE_PHOTO = 15;
+const UPLOAD_POST = 16;
 
 
 
@@ -93,8 +95,7 @@ const signupHendler = async (req, res) => {
         id: req.body.user_id,
         username: req.body.username || "none",
         full_name: req.body.full_name || "none",
-        phone_number: req.body.phone_number || "none",
-        following_ids: req.body.following_ids,
+        phone_number: req.body.phone_number || "-1",
         state: req.body.state || "online",
         date: req.body.date || "",
         time: req.body.time || ""
@@ -128,6 +129,7 @@ const getUserHendler = async (req, res, ref) => {
 
 const patchUserHandler = async (req, res, ref) => {
 
+    console.log("\n\nim in patchUserHandler!! \n\n")
     const taskData = {
         work: PATCH_USER,
         uid: req.params.uid,
@@ -285,6 +287,40 @@ const getBothUserAndHisSettingsHandler = async (req, res) => {
     };
     addTask(taskData, res);
 };
+
+
+const uploadProfilePhotoHandler = async (req, res) => {
+    console.log("im in uploadProfilePhotoHandler\n");
+
+    let uid = req.params.uid;
+    let image_uri = req.params.image_uri
+
+    console.log("id = " + uid);
+
+    const taskData = {
+        work: UPLOAD_PROFILE_PHOTO,
+        uid: uid,
+        image_uri: image_uri
+    };
+    addTask(taskData, res);
+};
+
+
+const uploadNewPostHandler = async (req, res) => {
+    console.log("im in uploadProfilePhotoHandler\n");
+
+    let uid = req.params.uid;
+    let image_uri = req.params.image_uri
+
+    console.log("id = " + uid);
+
+    const taskData = {
+        work: UPLOAD_POST,
+        uid: uid,
+        image_uri: image_uri
+    };
+    addTask(taskData, res);
+};
  
 
-  export {getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+  export {uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};

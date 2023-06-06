@@ -16,6 +16,7 @@ const GET_REQUESTS = 11;
 const GET_CONTACTS_USERS_AND_ACCOUNTS = 12;
 const GET_FOLLOWINGS_USERS_AND_ACCOUNTS = 13;
 const GET_BOTH_USER_AND_ACCOUNT = 14;
+const UPLOAD_PROFILE_PHOTO = 15;
 
 
 
@@ -81,6 +82,9 @@ class user_worker {
                 break;
             case GET_BOTH_USER_AND_ACCOUNT:
                 this.worker.postMessage({ type: 'getBothUserAndHisSettings', data: taskData });
+                break;
+            case UPLOAD_PROFILE_PHOTO:
+                this.worker.postMessage({ type: 'uploadProfilePhoto', data: taskData });
                 break;
             default:
                 break;
