@@ -309,15 +309,24 @@ const uploadProfilePhotoHandler = async (req, res) => {
 const uploadNewPostHandler = async (req, res) => {
     console.log("im in uploadProfilePhotoHandler\n");
 
+    // let receipe = req.body.recipe;
+    // const jsonData = JSON.stringify(receipe);
+    // console.log(jsonData);
+
+
     let uid = req.params.uid;
-    let image_uri = req.params.image_uri
 
     console.log("id = " + uid);
 
     const taskData = {
         work: UPLOAD_POST,
-        uid: uid,
-        image_uri: image_uri
+        receipe: req.body.recipe || "none",
+        caption: req.body.caption,
+        date_created: req.body.date_created,
+        image_paths: req.body.image_paths,
+        post_id: req.body.post_id,
+        user_id: req.body.user_id,
+        tags: req.body.tags
     };
     addTask(taskData, res);
 };

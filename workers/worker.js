@@ -747,8 +747,86 @@ const getBothUserAndHisSettings = async (taskData) => {
 };
 
 
+const saveRef = async (pathToSaveTo, ref) => {
+
+    var userRef;
+
+    if (ref) {
+        userRef = ref ;
+    }
+    const data = {
+        "author": userRef,
+    }
+
+    await db.doc(pathToSaveTo).set(data)
+    .then(() => {
+        console.log("\n\nsaveRef to " + pathToSaveTo +  " - success!\n\n");
+    })
+    .catch((error) => {
+        console.log("\n\nsaveRef - Error: " + error + "\n\n");
+    });
+}
+
+
+const getObjectFromRef = async (data) => {
+
+    const authorRef = data.author; // Assuming the author field is a Firestore document reference
+    const response = await authorRef.get();
+
+    const jsonData2 = JSON.stringify(response.data());
+    console.log(jsonData2);
+    
+    return response;
+}
+
+
+
+const updateFollowersFeeds = async (uid, ref) => {
+
+    // await db.collection()
+    
+}
+
+
+const uploadNewPost = async (taskData) => {
+
+    const {work, receipe,caption,date_created,image_paths,post_id,user_id, tags} = taskData;
+
+    const post = {work, receipe,caption,date_created,image_paths,post_id,user_id, tags};
+    const postRef = db.collection("users_posts").doc(user_id).collection("posts").doc(post_id);
+    postRef.set(post).then(() => {
+        console.log("\nuploadNewPost - post Added successfully!\n");
+        updateFollowersFeeds(user_id, postRef);
+    })
+    .catch((error) => {
+        console.log("\nuploadNewPost - Error: " + error + "\n");
+    });
+
+
+
+
+
+    //     saveRef("utils/try", db.collection("users").doc("9MtMBVsif8g4R49jrtqXpIEUEvx2"));
+
+
+    // await db.collection("utils").doc("try").get()
+    // .then(async (doc) => {
+    //     const ans = getObjectFromRef(doc.data());
+    //     const jsonData2 = JSON.stringify(ans);
+    //     console.log(jsonData2);
+    // })
+    // .catch((error) => {
+    //     console.log("\n\nuploadProfilePhoto - Error1111: " + error + "\n\n");
+    // });
+
+}
+
+
+
+
 const uploadProfilePhoto = async (taskData) => {
     console.log(" ======================== im in uploadProfilePhoto ==========================\n")
+
     const { uid, image_uri } = taskData;
 
 
@@ -761,87 +839,16 @@ const uploadProfilePhoto = async (taskData) => {
         console.error('Error setting value to Firestore document:', error);
         parentPort.postMessage({ success: false, error: "Error in uploadProfilePhoto: " + error });
     });
- 
+
+
+
+
+
     console.log(" ======================== out of uploadProfilePhoto ==========================\n")
 
 };
 
-
-// async function createFolder(folderName) {
-//     const folderPath = `${folderName}/`;
-//     const file = bucket.file(folderPath);
-//     await file.save('', { metadata: { contentType: 'application/x-www-form-urlencoded' } });
-//     console.log(`Folder '${folderName}' created in Firebase Storage`);
-//   }
-
-async function createFolder(folderName) {
-    const folderPath = `${folderName}/`;
-    const file = bucket.file(folderPath);
-    await file.create();
-    console.log(`Folder '${folderName}' created in Firebase Storage`);
-  }
   
-  
-//   async function storeUriInStorage(uri, folder, filename) {
-//     try {
-//       // Create the folder if it doesn't exist
-//       await createFolder(folder);
-  
-//       const filePath = `${folder}/${filename}`;
-//       const file = bucket.file(filePath);
-//       var imageBuffer = new Uint8Array(uri);
-//       file.save(imageBuffer, { metadata: { contentType: 'image/png' } });
-  
-//       console.log('URI stored in Firebase Storage successfully');
-//       const expiresAt = new Date();
-//       expiresAt.setFullYear(expiresAt.getFullYear() + 10); // Set expiration to 10 years from now
-      
-//       const [downloadUrl] = await file.getSignedUrl({
-//         action: 'read',
-//         expires: expiresAt
-//       });
-  
-//       console.log('Download URL:', downloadUrl);
-  
-//       return downloadUrl;
-//     } catch (error) {
-//       console.error('Error storing URI in Firebase Storage:', error);
-//       return null;
-//     }
-//   }
-
-async function storeByteArrayInStorage(byteArray, folder, filename) {
-    try {
-      // Create the folder if it doesn't exist
-      await createFolder(folder);
-  
-      const filePath = `${folder}/${filename}`;
-      const file = bucket.file( );
-  
-      // Convert the byte array to a Buffer
-      const buffer = Buffer.from(byteArray);
-  
-      // Upload the Buffer to Firebase Storage
-      await file.save(buffer, { metadata: { contentType: 'image/png' } });
-  
-      console.log('Byte array stored in Firebase Storage successfully');
-  
-      const expiresAt = new Date();
-      expiresAt.setFullYear(expiresAt.getFullYear() + 10); // Set expiration to 10 years from now
-  
-      const [downloadUrl] = await file.getSignedUrl({
-        action: 'read',
-        expires: expiresAt
-      });
-  
-      console.log('Download URL:', downloadUrl);
-  
-      return downloadUrl;
-    } catch (error) {
-      console.error('Error storing byte array in Firebase Storage:', error);
-      return null;
-    }
-  }
 
 
 while (true) {
@@ -853,7 +860,7 @@ while (true) {
     // Process the message
     console.log(`Worker received message: ${message.type}`);
 
-    try {
+    // try {
       let result;
       switch (message.type) {
         case 'signup':
@@ -905,38 +912,14 @@ while (true) {
         case 'uploadProfilePhoto':
             result = await uploadProfilePhoto(message.data);
             break;
+        case 'uploadNewPost':
+            result = await uploadNewPost(message.data);
+            break;
         default:
           break;
       }
-    } catch (err) {
-        console.log("user_worker: Error in the switch: " + err);
-    }
+    // } catch (err) {
+    //     console.log("user_worker: Error in the switch: " + err);
+    // }
   }
 
-// ================ Working but not sleeping until there is work ======== patchUserAccountSettings
-// // Message handler
-// parentPort.on('message', async (message) => {
-//     console.log(" im in the worker Message handler and i need to heandle: " + message.data.work) 
-//     try {
-//       let result;
-//       switch (message.type) {
-//         case 'signup':
-//           result = await signup(message.data);
-//           break;
-//         case 'login':
-//           result = await login(message.data);
-//           break;
-//         case 'patchUser':
-//           result = await patchUser(message.data);
-//           break;
-//         case 'deleteUser':
-//           result = await deleteUser(message.data);
-//           break;
-//         default:
-//           break;
-//       }
-//     } catch (err) {
-//         console.log("user_worker: Error in the switch: " + err);
-//     }
-    
-//   });
