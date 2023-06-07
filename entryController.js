@@ -132,15 +132,21 @@ const getUserHendler = async (req, res, ref) => {
 const patchUserHandler = async (req, res, ref) => {
 
     console.log("\n\nim in patchUserHandler!! \n\n")
+    // const taskData = {
+    //     work: PATCH_USER,
+    //     uid: req.params.uid,
+    //     email: req.body.email,
+    //     password: req.body.password,
+    //     phone_number: req.body.phone_number,
+    //     username: req.body.username,
+    //     full_name: req.body.full_name,
+    //     ref: ref
+    // };
     const taskData = {
         work: PATCH_USER,
         uid: req.params.uid,
-        email: req.body.email,
-        password: req.body.password,
         phone_number: req.body.phone_number,
-        username: req.body.username,
-        full_name: req.body.full_name,
-        ref: ref
+        full_name: req.body.full_name
     };
     addTask(taskData, res);
 };
@@ -151,17 +157,8 @@ const patchUserAccountSettingsHandler = async (req, res, ref) => {
     const taskData = {
         work: PATCH_USER_ACCOUNT_SETTINGS,
         uid: req.params.uid,
-        email: req.body.email,
         description: req.body.description,
-        profile_photo: req.body.profile_photo,
-        isBusiness: req.body.isBusiness,
-        followers: req.body.followers,
-        following: req.body.following,
-        posts: req.body.posts,
         website: req.body.website,
-        following_ids: req.body.following_ids,
-        followers_ids: req.body.followers_ids,
-        ref: ref
     };
     addTask(taskData, res);
 };

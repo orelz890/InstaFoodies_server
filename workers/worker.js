@@ -159,68 +159,42 @@ const getUserHendler = async (taskData) => {
     });
 };
 
-const updateUser = async (ref,uid,data) =>{
-    const newUserJson = {
-        user_id: data.user_id,
-        email: data.email,
-        phone_number: phone_number || data.phone_number,
-        username: data.username || "none",
-        full_name: data.full_name || "none",
-        state: state || data.state,
-        date: date || data.date,
-        time: time || data.time
-    };
-
-    console.log("ref = " + ref);
-    await db.collection(ref).doc(uid).set(newUserJson)
-    .then(() => {
-        console.log("updateUser: Successfully updated " + ref , "{" + uid + "}", error.type );
-        parentPort.postMessage({ success: true, data: "updateUser: Successfully updated " + ref + " -{" + uid + "}" });
-    })
-    .catch((error) => {
-        console.log("updateUser: Failed to update user " + ref , "{" + uid + "}" ,error);
-        parentPort.postMessage({ success: false, error: "updateUser: Failed to update user ",ref  , error });
-    });
-    // See the UserRecord reference doc for the contents of userRecord.
-    console.log("Successfully updated user", ref ,uid);
-}
 
 
 const patchUser = async (taskData) => {
-    const {email, uid, password, phone_number, username, full_name, state, date, time ,ref} = taskData;
+    // const {email, uid, password, phone_number, username, full_name, state, date, time ,ref} = taskData;
+    const {uid, phone_number, full_name } = taskData;
 
-    console.log("in patchUser: " , email, password, username);
-    db.collection(ref).doc(uid).get()
+    db.collection("users").doc(uid).get()
     .then(async doc => {
         if (doc.exists) {
             const jsonData = JSON.stringify(doc.data());
             const data = JSON.parse(jsonData);
             // console.log(jsonData);
 
-            await admin.auth().updateUser(data.user_id, {password: password})
-            .then(async (userRecord) => {
-                const hash = await bcrypt.hash(password, saltRounds);
+            const newUserJson = {
+                user_id: data.user_id,
+                email: data.email,
+                phone_number: phone_number || data.phone_number,
+                username: data.username,
+                full_name: full_name || data.full_name,
+                state: data.state,
+                date: data.date,
+                time: data.time,
+                token: data.token
+            };
 
-                const newUserJson = {
-                    user_id: data.user_id,
-                    email: data.email,
-                    phone_number: phone_number || data.phone_number,
-                    username: username || data.username,
-                    full_name: full_name || data.full_name,
-                    state: state || data.state,
-                    date: date || data.date,
-                    time: time || data.time
-                };
-                // console.log("newGuy= ", newUserJson);
-                updateUser(ref,data.user_id,newUserJson)
+            await db.collection("users").doc(uid).set(newUserJson, { merge: true })
+            .then(() => {
+                console.log("patchUser: Successfully updated " + "{" + uid + "}", error.type );
+                parentPort.postMessage({ success: true, data: "updateUser: Successfully updated "  + " -{" + uid + "}" });
             })
-            .catch(function(error) {
-                console.log("Error updating user:", error);
-                parentPort.postMessage({ success: false, error: "patchUser: Error updating user:" + error });
-        
+            .catch((error) => {
+                console.log("patchUser: Failed to update user {" + uid + "}" ,error);
+                parentPort.postMessage({ success: false, error: "patchUser: Failed to update user " , error });
             });
-
-        } else {
+        } 
+        else {
             console.log('patchUser: Document not found!');
             parentPort.postMessage({ success: false, error: 'Document not found!' });
         }
@@ -228,15 +202,13 @@ const patchUser = async (taskData) => {
         console.log('patchUser: Error getting document:', error);
         parentPort.postMessage({ success: false, error: 'Error getting document:' + error });
     });
-
 }
 
 const patchUserAccountSettings = async (taskData) => {
-    const {email, uid, description, profile_photo, isBusiness, followers, following,
-        posts, website, following_ids ,followers_ids ,ref} = taskData;
+    const { uid, description, website} = taskData;
 
     // console.log("in patchUserAccountSettings: " , email, username);
-    await db.collection(ref).doc(uid).get()
+    await db.collection("users_account_settings").doc(uid).get()
     .then(async doc => {
         if (doc.exists) {
             const jsonData = JSON.stringify(doc.data());
@@ -244,37 +216,31 @@ const patchUserAccountSettings = async (taskData) => {
             // console.log(jsonData);
             const newUserJson = {
                 description: description || data.description,
-                profile_photo: profile_photo || data.profile_photo,
-                isBusiness: isBusiness || data.isBusiness,
-                followers: followers || data.followers,
-                following: following || data.following,
-                posts: posts || data.posts,
+                profile_photo: data.profile_photo,
+                isBusiness: data.isBusiness,
+                followers: data.followers,
+                following: data.following,
+                posts: data.posts,
                 website: website || data.website,
-                following_ids: following_ids || data.following_ids,
-                followers_ids: followers_ids || data.followers_ids
-
+                following_ids: data.following_ids,
+                followers_ids: data.followers_ids
             };
-            // console.log("newGuy= ", newUserJson);
-            updateUser(ref,email,newUserJson)
+
+            await db.collection("users_account_settings").doc(uid).set(newUserJson, { merge: true })
+            .then(() => {
+                console.log("patchUserAccountSettings: Successfully updated " + "{" + uid + "}", error.type );
+                parentPort.postMessage({ success: true, data: "updateUser: Successfully updated "  + " -{" + uid + "}" });
+            })
+            .catch((error) => {
+                console.log("patchUserAccountSettings: Failed to update user {" + uid + "}" ,error);
+                parentPort.postMessage({ success: false, error: "patchUser: Failed to update user " , error });
+            });
+
             console.log('patchUserAccountSettings: Document updated!');
-            // parentPort.postMessage({ success: true, error: 'Document updated!' });
+            parentPort.postMessage({ success: true, error: 'Document updated!' });
         } else {
-            const newUserJson = {
-                description: description || "none",
-                profile_photo: profile_photo || "none",
-                isBusiness: isBusiness || false,
-                followers: followers || 0,
-                following: following || 0,
-                posts: posts || 0,
-                website: website || "none",
-                following_ids: following_ids || [],
-                followers_ids: followers_ids || []
-
-            };
-            // console.log("newGuy= ", newUserJson);
-            updateUser(ref,email,newUserJson)
-            console.log('patchUserAccountSettings: Document updated!');
-            // parentPort.postMessage({ success: true, error: 'Document created!' });
+            console.log('patchUserAccountSettings: Document not found!');
+            parentPort.postMessage({ success: false, error: 'Document not found!' });
         }
     }).catch(error => {
         console.log('patchUserAccountSettings: Error getting document:', error);
