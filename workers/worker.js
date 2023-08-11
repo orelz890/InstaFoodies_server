@@ -193,7 +193,7 @@ const patchUser = async (taskData) => {
                 console.log("patchUser: Failed to update user {" + uid + "}" ,error);
                 parentPort.postMessage({ success: false, error: "patchUser: Failed to update user " , error });
             });
-        } 
+        }
         else {
             console.log('patchUser: Document not found!');
             parentPort.postMessage({ success: false, error: 'Document not found!' });
@@ -780,9 +780,9 @@ const updateFollowersFeeds = async (uid, post_id, ref) => {
 
 const uploadNewPost = async (taskData) => {
 
-    const {work, receipe,caption,date_created,image_paths,post_id,user_id, tags} = taskData;
+    const {work, receipe,caption,date_created,image_paths, liked,post_id,user_id, tags} = taskData;
 
-    const post = {work, receipe,caption,date_created,image_paths,post_id,user_id, tags};
+    const post = {work, receipe,caption,date_created,image_paths, liked, post_id,user_id, tags};
     const postRef = db.collection("users_posts").doc(user_id).collection("posts").doc(post_id);
     postRef.set(post).then(() => {
         console.log("\nuploadNewPost - post Added successfully!\n");
@@ -955,6 +955,96 @@ const getProfileFeedPosts = async (taskData) => {
     
 
 
+const addOrRemovePostLiked = async (taskData) => {
+    console.log(" ======================== im in addOrRemovePostLiked ==========================\n")
+
+    const { uid, postOwnerId, postId } = taskData;
+
+
+    const LikedRef = db.collection("users_posts").doc(postOwnerId).collection("posts").doc(postId);
+    
+    LikedRef.get()
+    .then(async doc => {
+        // console.log("User collection= " + doc.data())
+        if (doc.exists) {
+            const likedArray = doc.data().Liked || [];
+            console.log("likedArray = " + likedArray);
+            if (likedArray.includes(uid)){
+                console.log('addOrRemovePostLiked - User already liked this post. Remove like.');
+                LikedRef.update({ Liked: admin.firestore.FieldValue.arrayRemove(uid) })
+                .then(() => {
+                    console.log('addOrRemovePostLiked - User\'s ID removed from the "Liked" array.');
+                    parentPort.postMessage({ success: true, data: false});
+                })
+                .catch(error => {
+                    console.error('addOrRemovePostLiked - Error removing from array:', error);
+                    parentPort.postMessage({ success: false, error: "Error in addOrRemovePostLiked: " + error });
+
+                });
+
+            } else {
+                console.log('addOrRemovePostLiked - User hasn\'t liked this post yet. Add Like');
+                LikedRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(uid)})
+                .then(() => {
+                    console.log('addOrRemovePostLiked - Value set to Firestore document successfully');
+                    parentPort.postMessage({ success: true, data: true});
+                })
+                .catch((error) => {
+                    console.error('addOrRemovePostLiked - Error setting value to Firestore document:', error);
+                    parentPort.postMessage({ success: false, error: "Error in addOrRemovePostLiked: " + error });
+                });
+            }
+            
+        } else {
+            console.log('addOrRemovePostLiked: Liked Document not found!');
+            parentPort.postMessage({ success: false, error: "Liked Document not found!"});
+        }
+    }).catch(error => {
+        console.error('addOrRemovePostLiked - Error querying document:', error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    });
+    
+    
+    
+    // const query = LikedRef.collection("Liked").where("Liked", "array-contains", uid);
+    // await query.get()
+    //     .then(querySnapshot => {
+    //         console.log(querySnapshot);
+    //         if (!querySnapshot.empty) {
+    //             console.log('addOrRemovePostLiked - User already liked this post. Remove like.');
+    //             LikedRef.update({ Liked: admin.firestore.FieldValue.arrayRemove(uid) })
+    //             .then(() => {
+    //                 console.log('addOrRemovePostLiked - User\'s ID removed from the "Liked" array.');
+    //                 parentPort.postMessage({ success: true, data: false});
+    //             })
+    //             .catch(error => {
+    //                 console.error('addOrRemovePostLiked - Error removing from array:', error);
+    //                 parentPort.postMessage({ success: false, error: "Error in addOrRemovePostLiked: " + error });
+
+    //             });
+
+    //         } else {
+    //             console.log('addOrRemovePostLiked - User hasn\'t liked this post yet. Add Like');
+    //             LikedRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(uid)})
+    //             .then(() => {
+    //                 console.log('addOrRemovePostLiked - Value set to Firestore document successfully');
+    //                 parentPort.postMessage({ success: true, data: true});
+    //             })
+    //             .catch((error) => {
+    //                 console.error('addOrRemovePostLiked - Error setting value to Firestore document:', error);
+    //                 parentPort.postMessage({ success: false, error: "Error in addOrRemovePostLiked: " + error });
+    //             });
+    //         }
+    //     })
+    //     .catch(error => {
+    //         console.error('addOrRemovePostLiked - Error querying document:', error);
+    //     });
+
+    console.log(" ======================== out of addOrRemovePostLiked ==========================\n")
+};
+
+
+
 while (true) {
     // Wait for a message to be received (sleep until then)
     const message = await new Promise(resolve => {
@@ -1024,6 +1114,9 @@ while (true) {
             break;
         case 'getProfileFeedPosts':
             result = await getProfileFeedPosts(message.data);
+            break;
+        case 'addOrRemovePostLiked':
+            result = await addOrRemovePostLiked(message.data);
             break;
         default:
           break;

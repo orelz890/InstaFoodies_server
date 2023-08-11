@@ -26,6 +26,7 @@ const UPLOAD_PROFILE_PHOTO = 15;
 const UPLOAD_POST = 16;
 const GET_USER_FEED = 17;
 const GET_USER_PROFILE_FEED = 18;
+const ADD_OR_REMOVE_POST_LIKE = 19;
 
 
 
@@ -319,6 +320,7 @@ const uploadNewPostHandler = async (req, res) => {
         caption: req.body.caption,
         date_created: req.body.date_created,
         image_paths: req.body.image_paths,
+        liked: req.body.liked,
         post_id: req.body.post_id,
         user_id: req.body.user_id,
         tags: req.body.tags
@@ -356,5 +358,17 @@ const getProfileFeedPostsHandler = async (req, res) => {
     addTask(taskData, res);
 };
  
+const addOrRemovePostLikedHandler = async (req, res) => {
+    console.log("im in getUserFeedPostsHandler\n");
 
-  export {getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+    const taskData = {
+        work: ADD_OR_REMOVE_POST_LIKE,
+        uid: req.params.uid,
+        postOwnerId: req.params.postOwnerId,
+        postId: req.params.postId,
+    };
+    addTask(taskData, res);
+};
+
+
+  export {addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};

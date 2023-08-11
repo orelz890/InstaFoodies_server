@@ -20,6 +20,7 @@ const UPLOAD_PROFILE_PHOTO = 15;
 const UPLOAD_POST = 16;
 const GET_USER_FEED = 17;
 const GET_USER_PROFILE_FEED = 18;
+const ADD_OR_REMOVE_POST_LIKE = 19;
 
 
 
@@ -98,6 +99,9 @@ class user_worker {
                 break;
             case GET_USER_PROFILE_FEED:
                 this.worker.postMessage({ type: 'getProfileFeedPosts', data: taskData });
+                break;
+            case ADD_OR_REMOVE_POST_LIKE:
+                this.worker.postMessage({ type: 'addOrRemovePostLiked', data: taskData });
                 break;
             default:
                 break;
