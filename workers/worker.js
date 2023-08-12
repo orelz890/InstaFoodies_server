@@ -960,7 +960,6 @@ const addOrRemovePostLiked = async (taskData) => {   // not working <<<<<<<<<<<<
 
     const { uid, postOwnerId, postId } = taskData;
 
-
     const postLikesRef = db.collection("users_posts").doc(postOwnerId).collection("posts").doc(postId);
     const userLikedPostsRef = db.collection("users_liked_posts").doc(uid);
 
@@ -1022,7 +1021,7 @@ const addOrRemovePostLiked = async (taskData) => {   // not working <<<<<<<<<<<<
                 await postLikesRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(uid)})
                 .then(async () => {
                     console.log('addOrRemovePostLiked - Value set to Firestore document successfully');
-                    await userLikedPostsRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(uid)})
+                    await userLikedPostsRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(postLikesRef)})
                     .then(() => {
                         console.log('addOrRemovePostLiked - Value set to user liked list Firestore document successfully');
                         parentPort.postMessage({ success: true, data: true});
@@ -1047,42 +1046,6 @@ const addOrRemovePostLiked = async (taskData) => {   // not working <<<<<<<<<<<<
         console.error('addOrRemovePostLiked - Error querying document:', error);
         parentPort.postMessage({ success: false, error: "Error: " + error });
     });
-    
-    
-    
-    // const query = LikedRef.collection("Liked").where("Liked", "array-contains", uid);
-    // await query.get()
-    //     .then(querySnapshot => {
-    //         console.log(querySnapshot);
-    //         if (!querySnapshot.empty) {
-    //             console.log('addOrRemovePostLiked - User already liked this post. Remove like.');
-    //             LikedRef.update({ Liked: admin.firestore.FieldValue.arrayRemove(uid) })
-    //             .then(() => {
-    //                 console.log('addOrRemovePostLiked - User\'s ID removed from the "Liked" array.');
-    //                 parentPort.postMessage({ success: true, data: false});
-    //             })
-    //             .catch(error => {
-    //                 console.error('addOrRemovePostLiked - Error removing from array:', error);
-    //                 parentPort.postMessage({ success: false, error: "Error in addOrRemovePostLiked: " + error });
-
-    //             });
-
-    //         } else {
-    //             console.log('addOrRemovePostLiked - User hasn\'t liked this post yet. Add Like');
-    //             LikedRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(uid)})
-    //             .then(() => {
-    //                 console.log('addOrRemovePostLiked - Value set to Firestore document successfully');
-    //                 parentPort.postMessage({ success: true, data: true});
-    //             })
-    //             .catch((error) => {
-    //                 console.error('addOrRemovePostLiked - Error setting value to Firestore document:', error);
-    //                 parentPort.postMessage({ success: false, error: "Error in addOrRemovePostLiked: " + error });
-    //             });
-    //         }
-    //     })
-    //     .catch(error => {
-    //         console.error('addOrRemovePostLiked - Error querying document:', error);
-    //     });
 
     console.log(" ======================== out of addOrRemovePostLiked ==========================\n")
 };
