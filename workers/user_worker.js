@@ -21,6 +21,9 @@ const UPLOAD_POST = 16;
 const GET_USER_FEED = 17;
 const GET_USER_PROFILE_FEED = 18;
 const ADD_OR_REMOVE_POST_LIKE = 19;
+const ADD_COMMENT_TO_POST = 20;
+const GET_POST_COMMENTS = 21;
+const ADD_OR_REMOVE_LIKE_TO_COMMENT = 22;
 
 
 
@@ -102,6 +105,15 @@ class user_worker {
                 break;
             case ADD_OR_REMOVE_POST_LIKE:
                 this.worker.postMessage({ type: 'addOrRemovePostLiked', data: taskData });
+                break;
+            case ADD_COMMENT_TO_POST:
+                this.worker.postMessage({ type: 'addCommentToPost', data: taskData });
+                break;
+            case GET_POST_COMMENTS:
+                this.worker.postMessage({ type: 'getPostComments', data: taskData });
+                break;
+            case ADD_OR_REMOVE_LIKE_TO_COMMENT:
+                this.worker.postMessage({ type: 'addOrRemoveLikeToPostComment', data: taskData });
                 break;
             default:
                 break;

@@ -775,11 +775,12 @@ const updateFollowersFeeds = async (uid, post_id, ref) => {
 
 const uploadNewPost = async (taskData) => {
 
-    const {work, receipe,caption,date_created,image_paths, liked,post_id,user_id, tags} = taskData;
+    const {work, receipe, caption, date_created,image_paths, liked, comments ,post_id, user_id, tags} = taskData;
 
     let images = image_paths || [];
     let like_list = liked || [];
-    const post = {work, receipe,caption,date_created, images, like_list, post_id,user_id, tags};
+    let comments_list = comments || [];
+    const post = {work, receipe,caption,date_created, images, like_list, comments_list, post_id,user_id, tags};
     const postRef = db.collection("users_posts").doc(user_id).collection("posts").doc(post_id);
     postRef.set(post).then(() => {
         console.log("\nuploadNewPost - post Added successfully!\n");
@@ -952,7 +953,7 @@ const getProfileFeedPosts = async (taskData) => {
     
 
 
-const addOrRemovePostLiked = async (taskData) => {   // not working <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+const addOrRemovePostLiked = async (taskData) => {
     console.log(" ======================== im in addOrRemovePostLiked ==========================\n")
 
     const { uid, postOwnerId, postId } = taskData;
@@ -1048,6 +1049,121 @@ const addOrRemovePostLiked = async (taskData) => {   // not working <<<<<<<<<<<<
 };
 
 
+const addCommentToPost = async (taskData) => {
+    console.log(" ======================== im in addOrRemovePostLiked ==========================\n")
+
+    const { postOwnerId, postId, uid, comment, name, photo, commentId } = taskData;
+
+    const currentDate = new Date();
+    console.log("Date = " + currentDate);
+
+    const postCommentsRef = db.collection("users_posts").doc(postOwnerId).collection("posts").doc(postId);
+
+    const newComment = {
+        date: String(currentDate),
+        uid: uid,
+        name: name || "Anonimus",
+        liked: [],
+        photo: photo || "",
+        comment: comment,
+        commentId: commentId
+    };
+
+    // Load the new comment to firestore
+    await postCommentsRef.update({ comments: admin.firestore.FieldValue.arrayUnion(newComment)})
+    .then(() => {
+        console.log('addCommentToPost - Document and liked reference created successfully.'); 
+        parentPort.postMessage({ success: true, data: "Success"});
+    })
+    .catch(error => {
+        console.error('addCommentToPost - ', error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    }); // Use merge: true to avoid overwriting other fields
+    
+    console.log(" ======================== out of addCommentToPost ==========================\n")
+};
+
+
+const getPostComments = async (taskData) => {   // not working <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    console.log(" ======================== im in getPostComments ==========================\n")
+
+    const { postOwnerId, postId } = taskData;
+
+    const postRef = db.collection("users_posts").doc(postOwnerId).collection("posts").doc(postId);
+
+    // Load the new comment to firestore
+    await postRef.get()
+    .then((postSnap) => {
+        if (postSnap.exists){
+            const jsonData = JSON.stringify(postSnap.data().comments);
+            console.log('getPostComments - data collected. comments = ' + jsonData);
+            parentPort.postMessage({ success: true, data: jsonData});
+        }
+        else{
+            console.log('getPostComments - data collected. postSnap dont exist.'); 
+            parentPort.postMessage({ success: false, error: "Error: postSnap dont exist." });
+
+        }
+    })
+    .catch(error => {
+        console.error('getPostComments - ', error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    }); // Use merge: true to avoid overwriting other fields
+    
+    console.log(" ======================== out of getPostComments ==========================\n")
+};
+
+
+
+const addOrRemoveLikeToPostComment = async (taskData) => {   // not working <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    console.log(" ======================== im in addOrRemoveLikeToPostComment ==========================\n")
+
+    const { postOwner, postId, uid, position } = taskData;
+
+    const commentRef = db.collection("users_posts").doc(postOwner).collection("posts").doc(postId);
+
+    // await commentRef.get()
+    // .then(async (doc) => {
+    //     const jsonData = JSON.stringify(doc.data().comments[position].liked);
+    //     console.log("doc = " + jsonData);
+    //     let likedArray = doc.data().comments[position].liked;
+
+    //     if (likedArray && likedArray.includes(uid)){
+    //         likedArray.splice(position,1);
+    //         await commentRef.collection("comments").doc(position).set()
+    //         .then(() => {
+    //             console.log("addOrRemoveLikeToPostComment - Liked removed successfully.");
+    //             parentPort.postMessage({ success: true, data: false });
+    //         })
+    //         .catch(error => {
+    //             console.error('addOrRemoveLikeToPostComment - if - error - ', error);
+    //             parentPort.postMessage({ success: false, error: "Error: " + error });
+    //         });
+    //     }
+    //     else {
+    //         likedArray.comments[position].liked.push(uid)
+
+    //         await commentRef.update({ liked: admin.firestore.FieldValue.arrayUnion(uid)})
+    //         .then(() => {
+    //             console.log("addOrRemoveLikeToPostComment - Liked added successfully.");
+    //             parentPort.postMessage({ success: true, data: true });
+    //         })
+    //         .catch(error => {
+    //             console.error('addOrRemoveLikeToPostComment - else - error - ', error);
+    //             parentPort.postMessage({ success: false, error: "Error: " + error });
+    //         });
+    //     }
+    // })
+    // .catch(error => {
+    //     console.error('addOrRemoveLikeToPostComment - Erorr - ', error);
+    //     parentPort.postMessage({ success: false, error: "Error: " + error });
+    // });
+
+    
+    console.log(" ======================== out of addOrRemoveLikeToPostComment ==========================\n")
+};
+
+
 
 while (true) {
     // Wait for a message to be received (sleep until then)
@@ -1121,6 +1237,15 @@ while (true) {
             break;
         case 'addOrRemovePostLiked':
             result = await addOrRemovePostLiked(message.data);
+            break;
+        case 'addCommentToPost':
+            result = await addCommentToPost(message.data);
+            break;
+        case 'getPostComments':
+            result = await getPostComments(message.data);
+            break;
+        case 'addOrRemoveLikeToPostComment':
+            result = await addOrRemoveLikeToPostComment(message.data);
             break;
         default:
           break;

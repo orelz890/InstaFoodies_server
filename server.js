@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import {addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -243,7 +243,8 @@ app.get('/getContactsUsers/:uid', (req, res) => {
   app.patch('/uploadProfilePhoto/:uid/:image_uri', (req, res) => { 
     uploadProfilePhotoHandler(req, res)})
 
-    
+
+// ================================= Post ==============================
   /**
  * Upload New Post. 
  * @param uid {@code string}
@@ -270,17 +271,50 @@ app.get('/getContactsUsers/:uid', (req, res) => {
   app.get('/getProfileFeedPosts/:uid', (req, res) => { 
     getProfileFeedPostsHandler(req, res)})
 
-
   /**
  * Add Or remove like to Post. 
  * @param uid {@code string}
  * @param postOwnerId {@code string}
  * @param postId {@code string}
- * @returns none
+ * @returns void
  */
   app.patch('/addOrRemovePostLiked/:uid/:postOwnerId/:postId', (req, res) => { 
     addOrRemovePostLikedHandler(req, res)})
 
+
+/**
+ * Add new comment to a post. 
+ * @param postOwnerId {@code string}
+ * @param postId {@code string}
+ * @param uid {@code string}
+ * @param comment {@code string}
+ * @returns void
+ */
+app.post('/addCommentToPost/:postOwnerId/:postId/:uid/:comment/:name/:photo/:commentId', (req, res) => { 
+  addCommentToPostHandler(req, res)})
+
+
+  /**
+ * Get the comments of a spesific post. 
+ * @param postOwnerId {@code string}
+ * @param postId {@code string}
+ * @returns comments
+ */
+app.get('/getPostComments/:postOwnerId/:postId', (req, res) => { 
+  getPostCommentsHandler(req, res)})
+
+/**
+ * Add or remove like to a comment in a spesific post. 
+ * @param postOwnerId {@code string}
+ * @param postId {@code string}
+ * @param uid {@code string}
+ * @param position {@code int}
+ * @returns boolean
+ */
+  app.post('/addOrRemoveLikeToPostComment/:postOwner/:postId/:uid/:position', (req, res) => { 
+    addOrRemoveLikeToPostCommentHandler(req, res)})
+  
+  
 
 /* Start to listen
    If planning to deploy this app to cloud application some times the port is not 8080 by defualt so it will take whatever port that is open for there case.

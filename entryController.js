@@ -27,6 +27,9 @@ const UPLOAD_POST = 16;
 const GET_USER_FEED = 17;
 const GET_USER_PROFILE_FEED = 18;
 const ADD_OR_REMOVE_POST_LIKE = 19;
+const ADD_COMMENT_TO_POST = 20;
+const GET_POST_COMMENTS = 21;
+const ADD_OR_REMOVE_LIKE_TO_COMMENT = 22;
 
 
 
@@ -321,6 +324,7 @@ const uploadNewPostHandler = async (req, res) => {
         date_created: req.body.date_created,
         image_paths: req.body.image_paths,
         liked: req.body.liked,
+        comments: req.body.comments,
         post_id: req.body.post_id,
         user_id: req.body.user_id,
         tags: req.body.tags
@@ -370,5 +374,44 @@ const addOrRemovePostLikedHandler = async (req, res) => {
     addTask(taskData, res);
 };
 
+const addCommentToPostHandler = async (req, res) => {
+    console.log("im in addCommentToPostHandler\n");
 
-  export {addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+    const taskData = {
+        work: ADD_COMMENT_TO_POST,
+        postOwnerId: req.params.postOwnerId,
+        postId: req.params.postId,
+        uid: req.params.uid,
+        comment: req.params.comment,
+        name: req.params.name,
+        photo: req.params.photo,
+        commentId: req.params.commentId,
+    };
+    addTask(taskData, res);
+};
+
+const getPostCommentsHandler = async (req, res) => {
+    console.log("im in getPostCommentsHandler\n");
+
+    const taskData = {
+        work: GET_POST_COMMENTS,
+        postOwnerId: req.params.postOwnerId,
+        postId: req.params.postId,
+    };
+    addTask(taskData, res);
+};
+
+const addOrRemoveLikeToPostCommentHandler = async (req, res) => {
+    console.log("im in addOrRemoveLikeToPostCommentHandler\n");
+
+    const taskData = {
+        work: ADD_OR_REMOVE_LIKE_TO_COMMENT,
+        postOwner: req.params.postOwner,
+        postId: req.params.postId,
+        uid: req.params.uid,
+        position: req.params.position
+    };
+    addTask(taskData, res);
+};
+
+  export {addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
