@@ -141,10 +141,6 @@ const getUserHendler = async (taskData) => {
 
     db.collection(ref).doc(uid).get()
     .then(doc => {
-        // console.log("ref= " + ref)
-        // console.log("log= " + !doc.exists)
-        // console.log("collection= " + doc.data())
-
         if (doc.exists) {
             const jsonData = JSON.stringify(doc.data());
             // console.log(jsonData);
@@ -162,7 +158,6 @@ const getUserHendler = async (taskData) => {
 
 
 const patchUser = async (taskData) => {
-    // const {email, uid, password, phone_number, username, full_name, state, date, time ,ref} = taskData;
     const {uid, phone_number, full_name } = taskData;
 
     db.collection("users").doc(uid).get()
@@ -170,8 +165,8 @@ const patchUser = async (taskData) => {
         if (doc.exists) {
             const jsonData = JSON.stringify(doc.data());
             const data = JSON.parse(jsonData);
-            // console.log(jsonData);
 
+            // Create the user data union existing and new data
             const newUserJson = {
                 user_id: data.user_id,
                 email: data.email,
@@ -782,7 +777,9 @@ const uploadNewPost = async (taskData) => {
 
     const {work, receipe,caption,date_created,image_paths, liked,post_id,user_id, tags} = taskData;
 
-    const post = {work, receipe,caption,date_created,image_paths, liked, post_id,user_id, tags};
+    let images = image_paths || [];
+    let like_list = liked || [];
+    const post = {work, receipe,caption,date_created, images, like_list, post_id,user_id, tags};
     const postRef = db.collection("users_posts").doc(user_id).collection("posts").doc(post_id);
     postRef.set(post).then(() => {
         console.log("\nuploadNewPost - post Added successfully!\n");
