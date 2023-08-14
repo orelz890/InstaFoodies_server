@@ -32,6 +32,7 @@ const GET_POST_COMMENTS = 21;
 const ADD_OR_REMOVE_LIKE_TO_COMMENT = 22;
 const ADD_OR_REMOVE_RECIPE_POST_TO_CART = 23;
 const GET_LIKED_OR_CART_POSTS = 24;
+const DELETE_USER_POST = 25;
 
 
 
@@ -322,12 +323,12 @@ const uploadNewPostHandler = async (req, res) => {
 
     const taskData = {
         work: UPLOAD_POST,
-        receipe: req.body.recipe || "none",
+        recipe: req.body.recipe || null,
         caption: req.body.caption,
         date_created: req.body.date_created,
-        image_paths: req.body.image_paths,
-        liked: req.body.liked,
-        comments: req.body.comments,
+        image_paths: req.body.image_paths || [],
+        liked_list: req.body.liked_list || [],
+        comments_list: req.body.comments_list || [],
         post_id: req.body.post_id,
         user_id: req.body.user_id,
         tags: req.body.tags
@@ -352,7 +353,7 @@ const getUserFeedPostsHandler = async (req, res) => {
 
 
 const getProfileFeedPostsHandler = async (req, res) => {
-    console.log("im in getUserFeedPostsHandler\n");
+    console.log("im in getProfileFeedPostsHandler\n");
 
     let uid = req.params.uid;
 
@@ -441,4 +442,15 @@ const getLikedOrCartPostsHandler = async (req, res, collectionName) => {
     addTask(taskData, res);
 };
 
-  export {getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+const deleteProfilePostsHandler = async (req, res) => {
+    console.log("im in deleteProfilePostsHandler\n");
+
+    const taskData = {
+        work: DELETE_USER_POST,
+        uid: req.params.uid,
+        PostsId: req.body
+    };
+    addTask(taskData, res);
+};
+
+  export {deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};

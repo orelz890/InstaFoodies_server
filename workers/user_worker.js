@@ -26,6 +26,7 @@ const GET_POST_COMMENTS = 21;
 const ADD_OR_REMOVE_LIKE_TO_COMMENT = 22;
 const ADD_OR_REMOVE_RECIPE_POST_TO_CART = 23;
 const GET_LIKED_OR_CART_POSTS = 24;
+const DELETE_USER_POST = 25;
 
 
 
@@ -122,6 +123,9 @@ class user_worker {
                 break;
             case GET_LIKED_OR_CART_POSTS:
                 this.worker.postMessage({ type: 'getLikedOrCartPosts', data: taskData });
+                break;
+            case DELETE_USER_POST:
+                this.worker.postMessage({ type: 'deleteProfilePosts', data: taskData });
                 break;
             default:
                 break;

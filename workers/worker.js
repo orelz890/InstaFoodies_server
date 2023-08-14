@@ -775,12 +775,9 @@ const updateFollowersFeeds = async (uid, post_id, ref) => {
 
 const uploadNewPost = async (taskData) => {
 
-    const {work, receipe, caption, date_created,image_paths, liked, comments ,post_id, user_id, tags} = taskData;
+    const {work, recipe, caption, date_created,image_paths, liked_list, comments_list ,post_id, user_id, tags} = taskData;
 
-    let images = image_paths || [];
-    let like_list = liked || [];
-    let comments_list = comments || [];
-    const post = {work, receipe,caption,date_created, images, like_list, comments_list, post_id,user_id, tags};
+    const post = {work, recipe, caption, date_created, image_paths, liked_list, comments_list, post_id, user_id, tags};
     const postRef = db.collection("users_posts").doc(user_id).collection("posts").doc(post_id);
     postRef.set(post).then(() => {
         console.log("\nuploadNewPost - post Added successfully!\n");
@@ -888,6 +885,8 @@ const getProfileFeedPosts = async (taskData) => {
 
     const { uid } = taskData;
 
+    console.log("\n\nuid = " + uid + "\n\n");
+
     let posts = [];
     const collectionRef = db.collection("users_posts").doc(uid).collection("posts");
     const snapshot = await collectionRef.get();
@@ -906,6 +905,9 @@ const getProfileFeedPosts = async (taskData) => {
     } else {
       console.log("No posts found in the collection");
     }
+
+    console.log("\nposts = " + JSON.stringify(posts, null, 2));
+
 
     await db.collection("users").doc(uid).get()
     .then(async doc => {
@@ -964,10 +966,10 @@ const addOrRemovePostLiked = async (taskData) => {
     // If its the first like of this user create the list first
     await userLikedPostsRef.get()
     .then(async doc => {
-        if (!doc.exists || doc.exists && !doc.data().Liked) {
+        if (!doc.exists || doc.exists && !doc.data().liked_list) {
             // Document doesn't exist, create it and add the "Liked" array
             await userLikedPostsRef.set({
-                Liked: [] // Create the array with the user's ID
+                liked_list: [] // Create the array with the user's ID
             }, { merge: true }); // Use merge: true to avoid overwriting other fields
             console.log('Document and liked reference created successfully.'); 
         }
@@ -977,14 +979,14 @@ const addOrRemovePostLiked = async (taskData) => {
     .then(async doc => {
         if (doc.exists) {
 
-            const likedArray = doc.data().Liked;
+            const likedArray = doc.data().liked_list;
 
             // If its the first like of the post create the list first 
             if (!likedArray){
                 console.log("im here please see me");
                 // Document doesn't exist, create it and add the "Liked" array
                 await postRef.set({
-                    Liked: [] // Create the array with the user's ID
+                    liked_list: [] // Create the array with the user's ID
                 }, { merge: true }); // Use merge: true to avoid overwriting other fields
                 console.log('Document and liked reference created successfully.');
             }
@@ -993,11 +995,11 @@ const addOrRemovePostLiked = async (taskData) => {
             // If the user already liked this post remove his like
             if (likedArray && likedArray.includes(uid)){
                 console.log('addOrRemovePostLiked - User already liked this post. Remove like.');
-                await postRef.update({ Liked: admin.firestore.FieldValue.arrayRemove(uid) })
+                await postRef.update({ liked_list: admin.firestore.FieldValue.arrayRemove(uid) })
                 .then(async () => {
                     console.log('addOrRemovePostLiked - User\'s ID removed from the "Liked" array.');
                     await userLikedPostsRef
-                    .update({ Liked: admin.firestore.FieldValue.arrayRemove(postRef) })
+                    .update({ liked_list: admin.firestore.FieldValue.arrayRemove(postRef) })
                         .then(() => {
                             console.log('addOrRemovePostLiked - Post removed from the User\'s "Liked" array.');
                             parentPort.postMessage({ success: true, data: false});
@@ -1016,10 +1018,10 @@ const addOrRemovePostLiked = async (taskData) => {
             else // The user is not in the post liked list so add his like
             {
                 console.log('addOrRemovePostLiked - User hasn\'t liked this post yet. Add Like');
-                await postRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(uid)})
+                await postRef.update({ liked_list: admin.firestore.FieldValue.arrayUnion(uid)})
                 .then(async () => {
                     console.log('addOrRemovePostLiked - Value set to Firestore document successfully');
-                    await userLikedPostsRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(postRef)})
+                    await userLikedPostsRef.update({ liked_list: admin.firestore.FieldValue.arrayUnion(postRef)})
                     .then(() => {
                         console.log('addOrRemovePostLiked - Value set to user liked list Firestore document successfully');
                         parentPort.postMessage({ success: true, data: true});
@@ -1063,14 +1065,14 @@ const addCommentToPost = async (taskData) => {
         date: String(currentDate),
         uid: uid,
         name: name || "Anonimus",
-        liked: [],
+        liked_list: [],
         photo: photo || "",
         comment: comment,
         commentId: commentId
     };
 
     // Load the new comment to firestore
-    await postCommentsRef.update({ comments: admin.firestore.FieldValue.arrayUnion(newComment)})
+    await postCommentsRef.update({ comments_list: admin.firestore.FieldValue.arrayUnion(newComment)})
     .then(() => {
         const jsonData = JSON.stringify(newComment);
         console.log('addCommentToPost - Document and liked reference created successfully.'); 
@@ -1096,7 +1098,7 @@ const getPostComments = async (taskData) => {
     await postRef.get()
     .then((postSnap) => {
         if (postSnap.exists){
-            const jsonData = JSON.stringify(postSnap.data().comments);
+            const jsonData = JSON.stringify(postSnap.data().comments_list);
             console.log('getPostComments - data collected. comments = ' + jsonData);
             parentPort.postMessage({ success: true, data: jsonData});
         }
@@ -1126,16 +1128,16 @@ const addOrRemoveLikeToPostComment = async (taskData) => {
     // Retrive post details
     await postRef.get()
     .then(async (doc) => {
-        const jsonData = JSON.stringify(doc.data().comments[position].liked);
+        const jsonData = JSON.stringify(doc.data().comments_list[position].liked_list);
         console.log("doc = " + jsonData);
         let post = doc.data();
-        let likedArray = post.comments[position].liked;
+        let likedArray = post.comments_list[position].liked_list;
 
         // If user already liked the comment remove his\hers like
         const indexToRemove = likedArray.indexOf(uid);
         if (indexToRemove !== -1) {
-            post.comments[position].liked.splice(indexToRemove, 1);
-            const jsonDataAfter = JSON.stringify(post.comments[position].liked);
+            post.comments_list[position].liked_list.splice(indexToRemove, 1);
+            const jsonDataAfter = JSON.stringify(post.comments_list[position].liked_list);
             console.log("doc after remove = " + jsonDataAfter);
 
             await postRef.set(post, { merge: true }) // Use merge: true to avoid overwriting other fields
@@ -1150,7 +1152,7 @@ const addOrRemoveLikeToPostComment = async (taskData) => {
         } 
         else { // User liked the comment so add his like
             console.log('Element not found in the array.');
-            post.comments[position].liked.push(uid);
+            post.comments_list[position].liked_list.push(uid);
             await postRef.set(post, { merge: true })
             .then(() => {
                 console.log("addOrRemoveLikeToPostComment - Liked added successfully.");
@@ -1255,7 +1257,7 @@ const getLikedOrCartPosts = async (taskData) => {
         if (!snapshot.empty) {
             let i = 0;
             if (collectionName === "users_liked_posts"){
-                snapshot.data().Liked.forEach((doc) => {
+                snapshot.data().liked_list.forEach((doc) => {
                     const jsonData = JSON.stringify(doc);
                     console.log(i++ + ")  " + jsonData);
                     //   const post = getObjectFromRef(data)
@@ -1274,7 +1276,7 @@ const getLikedOrCartPosts = async (taskData) => {
             console.log("\npostRefList = " + postJsonData);
         
             // Fatch all the actual posts simultaneously
-            fetchDocumentsFromReferences(postsRef)
+            fetchDocumentsFromReferences(postsRef, uid, collectionName)
             .then((documents) => {
                 console.log("\npostsList = " + JSON.stringify(documents, null, 2));
 
@@ -1304,22 +1306,128 @@ const getLikedOrCartPosts = async (taskData) => {
     console.log(" ======================== out of getLikedOrCartPosts ==========================\n")
 };
 
+const deleteProfilePosts = async (taskData) => {
+    console.log(" ======================== im in deleteProfilePosts ==========================\n")
+
+    const { uid, PostsId } = taskData;
+
+    console.log("\nPostsId = " + JSON.stringify(PostsId, null, 2));
+
+    try {
+        // Create a batched write
+        const batch = db.batch();
+
+        for (const documentId of PostsId) {
+            // Get a reference to the document you want to delete
+            const docRef = db.collection("users_posts").doc(uid).collection("posts").doc(documentId);
+
+            // Delete the document reference in the batch
+            batch.delete(docRef);
+        }
+
+        // Commit the batched write
+        await batch.commit();
+        console.log('Batch delete successful');
+
+        // Delete individual posts using Promise.all()
+        await Promise.all(PostsId.map(async post_id => {
+            let postRef = db.collection("users_posts").doc(uid).collection("posts").doc(post_id);
+            await postRef.delete();
+            console.log("post " + post_id + " deleted successfully");
+        }));
+
+        // Send success response back to the client
+        parentPort.postMessage({ success: true, data: true });
+    } catch (error) {
+        // Handle errors
+        console.error('Error performing deleteProfilePosts:', error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    }
+
+    console.log(" ======================== out of deleteProfilePosts ==========================\n");
+};
+
+// const deleteProfilePosts = async (taskData) => {
+//     console.log(" ======================== im in deleteProfilePosts ==========================\n")
+
+//     const { uid, PostsId } = taskData;
+
+//     console.log("\nPostsId = " + JSON.stringify(PostsId, null, 2));
+
+//     // Create a batched write
+//     const batch = db.batch();
+
+//     for (const documentId of PostsId) {
+//         // Get a reference to the document you want to delete
+//         const docRef = db.collection("users_posts").doc(uid).collection("posts").doc(documentId);
+
+//         // Delete the document reference in the batch
+//         batch.delete(docRef);
+//     }
+
+//     // Commit the batched write
+//     batch.commit()
+//     .then(() => {
+//         // Batch operation completed successfully
+//         console.log('Batch delete successful');
+//     })
+//     .catch((error) => {
+//         // Batch operation failed
+//         console.error('Error performing batch delete:', error);
+//     });
+//     PostsId.forEach(async post_id => {
+//         let postRef = db.collection("users_posts").doc(uid).collection("posts").doc(post_id);
+
+//         await postRef.delete()
+//         .then(() => {
+//             console.log("post " + PostsId + " deleted successfully");
+//             parentPort.postMessage({ success: true, data: true});
+//         })
+//         .catch(error => {
+//             console.error('deleteProfilePosts - Error while deleting post: ', error);
+//             parentPort.postMessage({ success: false, error: "Error: " + error });
+//         });
+//     })
+
+
+//     console.log(" ======================== out of deleteProfilePosts ==========================\n")
+// };
 
 // Function to fetch documents from references
-async function fetchDocumentsFromReferences(referenceList) {
+async function fetchDocumentsFromReferences(referenceList, uid, collectionName) {
     try {
         const fetchPromises = referenceList.map((reference) => reference.get());
         const documentSnapshots = await Promise.all(fetchPromises);
-    
-        const documents = documentSnapshots.map((snapshot) => {
+
+        let problematicIndexes = [];
+        const documents = await Promise.all(documentSnapshots.map(async (snapshot, index) => {
             if (snapshot.exists) {
                 return snapshot.data();
             } else {
+                problematicIndexes.push(index);
                 return null;
             }
+        }));
+
+        const removePromises = problematicIndexes.map(async (index) => {
+            const problematicPostRef = referenceList[index];
+            const Ref = db.collection(collectionName).doc(uid);
+
+            if (collectionName === "users_liked_posts") {
+                await Ref.update({ liked_list: admin.firestore.FieldValue.arrayRemove(problematicPostRef) });
+            } else {
+                await Ref.update({ cart: admin.firestore.FieldValue.arrayRemove(problematicPostRef) });
+            }
+
+            console.log('fetchDocumentsFromReferences - problematicPostRef removed from the array.');
         });
-  
-        return documents;
+
+        await Promise.all(removePromises);
+
+        const filteredDocuments = documents.filter((document) => document !== null);
+        console.log("\filteredDocuments = " + JSON.stringify(filteredDocuments, null, 2));
+
+        return filteredDocuments;
     } catch (error) {
         console.error("Error fetching documents:", error);
         throw error;
@@ -1340,14 +1448,14 @@ while (true) {
       let result;
       switch (message.type) {
         case 'signup':
-          result = await signup(message.data);
-          break;
+            result = await signup(message.data);
+            break;
         case 'login':
-          result = await login(message.data);
-          break;
+            result = await login(message.data);
+            break;
         case 'getUserData':
-        result = await getUserHendler(message.data);
-        break;
+            result = await getUserHendler(message.data);
+            break;
         case 'patchUser':
           result = await patchUser(message.data);
           break;
@@ -1414,6 +1522,9 @@ while (true) {
             break;
         case 'getLikedOrCartPosts':
             result = await getLikedOrCartPosts(message.data);
+            break;
+        case 'deleteProfilePosts':
+            result = await deleteProfilePosts(message.data);
             break;
         default:
           break;

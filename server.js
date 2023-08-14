@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import {getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -314,6 +314,7 @@ app.get('/getPostComments/:postOwnerId/:postId', (req, res) => {
   app.post('/addOrRemoveLikeToPostComment/:postOwner/:postId/:uid/:position', (req, res) => { 
     addOrRemoveLikeToPostCommentHandler(req, res)})
 
+// ======================================= profile =======================================
 
 /**
  * Get the user cart posts. 
@@ -324,7 +325,6 @@ app.get('/getPostComments/:postOwnerId/:postId', (req, res) => {
     getLikedOrCartPostsHandler(req, res, "users_cart_posts")})
 
 
-// ======================================= Cart =======================================
 /**
  * Add or remove recipe post to cart. 
  * @param uid {@code string}
@@ -344,6 +344,15 @@ app.patch('/addOrRemoveCartPost/:uid/:postOwnerId/:postId', (req, res) => {
   app.get('/getLikedPosts/:uid', (req, res) => { 
     getLikedOrCartPostsHandler(req, res, "users_liked_posts")})
   
+
+/**
+ * Get the user liked posts. 
+ * @param uid {@code string}
+ * @param PostsId {@code List<String>}
+ * @returns posts
+ */
+app.patch('/deleteProfilePosts/:uid', (req, res) => { 
+  deleteProfilePostsHandler(req, res)})
 
 
 
