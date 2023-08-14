@@ -958,7 +958,7 @@ const addOrRemovePostLiked = async (taskData) => {
 
     const { uid, postOwnerId, postId } = taskData;
 
-    const postLikesRef = db.collection("users_posts").doc(postOwnerId).collection("posts").doc(postId);
+    const postRef = db.collection("users_posts").doc(postOwnerId).collection("posts").doc(postId);
     const userLikedPostsRef = db.collection("users_liked_posts").doc(uid);
 
     // If its the first like of this user create the list first
@@ -973,7 +973,7 @@ const addOrRemovePostLiked = async (taskData) => {
         }
     });
 
-    postLikesRef.get()
+    postRef.get()
     .then(async doc => {
         if (doc.exists) {
 
@@ -983,7 +983,7 @@ const addOrRemovePostLiked = async (taskData) => {
             if (!likedArray){
                 console.log("im here please see me");
                 // Document doesn't exist, create it and add the "Liked" array
-                await postLikesRef.set({
+                await postRef.set({
                     Liked: [] // Create the array with the user's ID
                 }, { merge: true }); // Use merge: true to avoid overwriting other fields
                 console.log('Document and liked reference created successfully.');
@@ -993,11 +993,11 @@ const addOrRemovePostLiked = async (taskData) => {
             // If the user already liked this post remove his like
             if (likedArray && likedArray.includes(uid)){
                 console.log('addOrRemovePostLiked - User already liked this post. Remove like.');
-                await postLikesRef.update({ Liked: admin.firestore.FieldValue.arrayRemove(uid) })
+                await postRef.update({ Liked: admin.firestore.FieldValue.arrayRemove(uid) })
                 .then(async () => {
                     console.log('addOrRemovePostLiked - User\'s ID removed from the "Liked" array.');
                     await userLikedPostsRef
-                    .update({ Liked: admin.firestore.FieldValue.arrayRemove(uid) })
+                    .update({ Liked: admin.firestore.FieldValue.arrayRemove(postRef) })
                         .then(() => {
                             console.log('addOrRemovePostLiked - Post removed from the User\'s "Liked" array.');
                             parentPort.postMessage({ success: true, data: false});
@@ -1016,10 +1016,10 @@ const addOrRemovePostLiked = async (taskData) => {
             else // The user is not in the post liked list so add his like
             {
                 console.log('addOrRemovePostLiked - User hasn\'t liked this post yet. Add Like');
-                await postLikesRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(uid)})
+                await postRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(uid)})
                 .then(async () => {
                     console.log('addOrRemovePostLiked - Value set to Firestore document successfully');
-                    await userLikedPostsRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(postLikesRef)})
+                    await userLikedPostsRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(postRef)})
                     .then(() => {
                         console.log('addOrRemovePostLiked - Value set to user liked list Firestore document successfully');
                         parentPort.postMessage({ success: true, data: true});
@@ -1085,7 +1085,7 @@ const addCommentToPost = async (taskData) => {
 };
 
 
-const getPostComments = async (taskData) => {   // not working <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+const getPostComments = async (taskData) => {
     console.log(" ======================== im in getPostComments ==========================\n")
 
     const { postOwnerId, postId } = taskData;
@@ -1116,27 +1116,29 @@ const getPostComments = async (taskData) => {   // not working <<<<<<<<<<<<<<<<<
 
 
 
-const addOrRemoveLikeToPostComment = async (taskData) => {   // not working <<<<<<<<<<<<<<<<<<<<<<<<<<<<
+const addOrRemoveLikeToPostComment = async (taskData) => {
     console.log(" ======================== im in addOrRemoveLikeToPostComment ==========================\n")
 
     const { postOwner, postId, uid, position } = taskData;
 
-    const commentRef = db.collection("users_posts").doc(postOwner).collection("posts").doc(postId);
+    const postRef = db.collection("users_posts").doc(postOwner).collection("posts").doc(postId);
 
-    await commentRef.get()
+    // Retrive post details
+    await postRef.get()
     .then(async (doc) => {
         const jsonData = JSON.stringify(doc.data().comments[position].liked);
         console.log("doc = " + jsonData);
         let post = doc.data();
         let likedArray = post.comments[position].liked;
 
+        // If user already liked the comment remove his\hers like
         const indexToRemove = likedArray.indexOf(uid);
         if (indexToRemove !== -1) {
             post.comments[position].liked.splice(indexToRemove, 1);
             const jsonDataAfter = JSON.stringify(post.comments[position].liked);
             console.log("doc after remove = " + jsonDataAfter);
 
-            await commentRef.set(post, { merge: true }) // Use merge: true to avoid overwriting other fields
+            await postRef.set(post, { merge: true }) // Use merge: true to avoid overwriting other fields
             .then(() => {
                 console.log("addOrRemoveLikeToPostComment - Liked removed successfully.");
                 parentPort.postMessage({ success: true, data: false });
@@ -1146,10 +1148,10 @@ const addOrRemoveLikeToPostComment = async (taskData) => {   // not working <<<<
                 parentPort.postMessage({ success: false, error: "Error: " + error });
             });
         } 
-        else {
+        else { // User liked the comment so add his like
             console.log('Element not found in the array.');
             post.comments[position].liked.push(uid);
-            await commentRef.set(post, { merge: true })
+            await postRef.set(post, { merge: true })
             .then(() => {
                 console.log("addOrRemoveLikeToPostComment - Liked added successfully.");
                 parentPort.postMessage({ success: true, data: true });
@@ -1167,6 +1169,104 @@ const addOrRemoveLikeToPostComment = async (taskData) => {   // not working <<<<
 
     
     console.log(" ======================== out of addOrRemoveLikeToPostComment ==========================\n")
+};
+
+
+const addOrRemoveCartPost = async (taskData) => {
+    console.log(" ======================== im in addOrRemoveCartPost ==========================\n")
+
+    const { uid, postOwnerId, postId } = taskData;
+
+    const postRef = db.collection("users_posts").doc(postOwnerId).collection("posts").doc(postId);
+
+    const cartRef = db.collection("users_cart_posts").doc(uid);
+    
+    // // If its the first recipe post added create the cart list
+    // await cartRef.get()
+    // .then(async doc => {
+    //     if (!doc.exists || doc.exists && !doc.data().cart) {
+    //         // Document doesn't exist, create it and add the "Liked" array
+    //         await cartRef.set({
+    //             cart: [postRef] // Create the array with the post ref
+    //         }, { merge: true }); // Use merge: true to avoid overwriting other fields
+    //         console.log('Document and cart reference created successfully.'); 
+    //         parentPort.postMessage({ success: true, data: true});
+    //     }
+    //     else{
+
+    //     }
+    // })
+    // .catch(error => {
+    //     console.error('addOrRemoveCartPost - Error - Cart array retrival: ', error);
+    //     parentPort.postMessage({ success: false, error: "Error: " + error });
+    // });
+
+
+    // postLikesRef.get()
+    // .then(async doc => {
+    //     if (doc.exists) {
+
+    //         const cartArray = doc.data().cart;
+
+    //         // If the user already added this post remove it from his cart
+    //         if (cartArray && cartArray.includes(postRef)){
+    //             console.log('addOrRemoveCartPost - User already added this post remove it from his cart.');
+                
+    //             await cartRef.update({ cart: admin.firestore.FieldValue.arrayRemove(postRef) })
+    //             .then(async () => {
+    //                 console.log('addOrRemoveCartPost - PostRef removed from the "cart" array.');
+    //                 await userLikedPostsRef
+    //                 .update({ Liked: admin.firestore.FieldValue.arrayRemove(uid) })
+    //                     .then(() => {
+    //                         console.log('addOrRemovePostLiked - Post removed from the User\'s "Liked" array.');
+    //                         parentPort.postMessage({ success: true, data: false});
+    //                     })
+    //                     .catch(error => {
+    //                         console.log('addOrRemovePostLiked - Error -Post not removed from the User\'s "Liked" array!');
+    //                         parentPort.postMessage({ success: false, error: "Error in addOrRemovePostLiked: " + error });
+    //                     });
+    //             })
+    //             .catch(error => {
+    //                 console.error('addOrRemovePostLiked - Error removing from array:', error);
+    //                 parentPort.postMessage({ success: false, error: "Error in addOrRemovePostLiked: " + error });
+    //             });
+
+    //         } 
+    //         else // The user is not in the post liked list so add his like
+    //         {
+    //             console.log('addOrRemovePostLiked - User hasn\'t liked this post yet. Add Like');
+    //             await postLikesRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(uid)})
+    //             .then(async () => {
+    //                 console.log('addOrRemovePostLiked - Value set to Firestore document successfully');
+    //                 await userLikedPostsRef.update({ Liked: admin.firestore.FieldValue.arrayUnion(postLikesRef)})
+    //                 .then(() => {
+    //                     console.log('addOrRemovePostLiked - Value set to user liked list Firestore document successfully');
+    //                     parentPort.postMessage({ success: true, data: true});
+    //                 })
+    //                 .catch(error => {
+    //                     console.error('addOrRemovePostLiked - Error setting value to Firestore document22:', error);
+    //                     parentPort.postMessage({ success: false, error: "Error in addOrRemovePostLiked: " + error });
+    //                 });
+    //             })
+    //             .catch(error => {
+    //                 console.error('addOrRemovePostLiked - Error setting value to Firestore document:', error);
+    //                 parentPort.postMessage({ success: false, error: "Error in addOrRemovePostLiked: " + error });
+    //             });
+    //         }
+    //     } 
+    //     else // problem
+    //     {
+    //         console.log('addOrRemovePostLiked: Liked Document not found!');
+    //         parentPort.postMessage({ success: false, error: "Liked Document not found!"});
+    //     }
+    // }).catch(error => {
+    //     console.error('addOrRemovePostLiked - Error querying document:', error);
+    //     parentPort.postMessage({ success: false, error: "Error: " + error });
+    // });
+
+
+    
+    console.log(" ======================== out of addOrRemoveCartPost ==========================\n")
 };
 
 
@@ -1252,6 +1352,9 @@ while (true) {
             break;
         case 'addOrRemoveLikeToPostComment':
             result = await addOrRemoveLikeToPostComment(message.data);
+            break;
+        case 'addOrRemoveCartPost':
+            result = await addOrRemoveCartPost(message.data);
             break;
         default:
           break;

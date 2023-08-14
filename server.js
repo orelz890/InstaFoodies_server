@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import {addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -313,8 +313,19 @@ app.get('/getPostComments/:postOwnerId/:postId', (req, res) => {
  */
   app.post('/addOrRemoveLikeToPostComment/:postOwner/:postId/:uid/:position', (req, res) => { 
     addOrRemoveLikeToPostCommentHandler(req, res)})
-  
-  
+
+
+// ======================================= Cart =======================================
+/**
+ * Add or remove recipe post to cart. 
+ * @param uid {@code string}
+ * @param postOwnerId {@code string}
+ * @param postId {@code string}
+ * @returns boolean
+ */
+app.post('/addOrRemoveCartPost/:postOwner/:postId/:uid', (req, res) => { 
+  addOrRemoveCartPostHandler(req, res)})
+
 
 /* Start to listen
    If planning to deploy this app to cloud application some times the port is not 8080 by defualt so it will take whatever port that is open for there case.

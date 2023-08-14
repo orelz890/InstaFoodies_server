@@ -24,6 +24,7 @@ const ADD_OR_REMOVE_POST_LIKE = 19;
 const ADD_COMMENT_TO_POST = 20;
 const GET_POST_COMMENTS = 21;
 const ADD_OR_REMOVE_LIKE_TO_COMMENT = 22;
+const ADD_OR_REMOVE_RECIPE_POST_TO_CART = 23;
 
 
 
@@ -114,6 +115,9 @@ class user_worker {
                 break;
             case ADD_OR_REMOVE_LIKE_TO_COMMENT:
                 this.worker.postMessage({ type: 'addOrRemoveLikeToPostComment', data: taskData });
+                break;
+            case ADD_OR_REMOVE_RECIPE_POST_TO_CART:
+                this.worker.postMessage({ type: 'addOrRemoveCartPost', data: taskData });
                 break;
             default:
                 break;

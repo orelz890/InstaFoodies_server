@@ -30,6 +30,7 @@ const ADD_OR_REMOVE_POST_LIKE = 19;
 const ADD_COMMENT_TO_POST = 20;
 const GET_POST_COMMENTS = 21;
 const ADD_OR_REMOVE_LIKE_TO_COMMENT = 22;
+const ADD_OR_REMOVE_RECIPE_POST_TO_CART = 23;
 
 
 
@@ -414,4 +415,16 @@ const addOrRemoveLikeToPostCommentHandler = async (req, res) => {
     addTask(taskData, res);
 };
 
-  export {addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+const addOrRemoveCartPostHandler = async (req, res) => {
+    console.log("im in addOrRemoveCartPostHandler\n");
+
+    const taskData = {
+        work: ADD_OR_REMOVE_RECIPE_POST_TO_CART,
+        uid: req.params.uid,
+        postOwnerId: req.params.postOwnerId,
+        postId: req.params.postId,
+    };
+    addTask(taskData, res);
+};
+
+  export {addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
