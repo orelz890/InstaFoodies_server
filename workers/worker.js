@@ -1194,18 +1194,16 @@ const addOrRemoveCartPost = async (taskData) => {
             console.log('Document and cart reference created successfully.'); 
         }
 
+        // Check if cart contains the post already
         let cartArray = [];
 
         if (doc.data().cart) {
             cartArray = doc.data().cart;
         }
 
-        jsonData = JSON.stringify(cartArray);
-        console.log("cart = " + jsonData + "\n\ncartArray=" + cartArray + "\n\ncartArray.includes(postRef) = " + cartArray.includes(postRef) + "\n\nPostRef = " + JSON.stringify(postRef));
-
-        // If the user already added this post remove it from his cart
         console.log("\n\npostRef.posts = " + postRef["_path"]["segments"][3] + "\n\n");
 
+        // If the user already added this post remove it from his cart
         if (cartArray && cartArray.some(cartItem => cartItem["_path"]["segments"][3] === postRef["_path"]["segments"][3])){
             console.log('addOrRemoveCartPost - User already added this post remove it from his cart.');
             
@@ -1241,6 +1239,92 @@ const addOrRemoveCartPost = async (taskData) => {
     console.log(" ======================== out of addOrRemoveCartPost ==========================\n")
 };
 
+
+const getLikedOrCartPosts = async (taskData) => {
+    console.log(" ======================== im in getLikedOrCartPosts ==========================\n")
+
+    const { uid, collectionName } = taskData;
+
+    let Ref = db.collection(collectionName).doc(uid);
+
+    let postsRef = [];
+
+    // Collect All the necessary posts refrences
+    await Ref.get()
+    .then(async (snapshot) => {
+        if (!snapshot.empty) {
+            let i = 0;
+            if (collectionName === "users_liked_posts"){
+                snapshot.data().Liked.forEach((doc) => {
+                    const jsonData = JSON.stringify(doc);
+                    console.log(i++ + ")  " + jsonData);
+                    //   const post = getObjectFromRef(data)
+                    postsRef.push(doc);
+                });
+            }
+            else {
+                snapshot.data().cart.forEach((doc) => {
+                    const jsonData = JSON.stringify(doc);
+                    console.log(i++ + ")  " + jsonData);
+                    postsRef.push(doc);
+                });
+            }
+
+            let postJsonData = JSON.stringify(postsRef);
+            console.log("\npostRefList = " + postJsonData);
+        
+            // Fatch all the actual posts simultaneously
+            fetchDocumentsFromReferences(postsRef)
+            .then((documents) => {
+                console.log("\npostsList = " + JSON.stringify(documents, null, 2));
+
+                // Create the response
+                const response = {
+                    posts: documents
+                }
+            
+                let ans = JSON.stringify(response);
+                parentPort.postMessage({ success: true, data: ans});
+            })
+            .catch((error) => {
+                console.error("getLikedOrCartPosts - fetchDocumentsFromReferences - Error: ", error);
+            });
+        } 
+        else // No posts found in the collection
+        {
+            console.log("No posts found in the collection");
+            parentPort.postMessage({ success: false, data: "No posts found in the collection"});
+        }
+    })
+    .catch(error => {
+        console.error('getLikedOrCartPosts - Error - array retrival: ', error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    });
+    
+    console.log(" ======================== out of getLikedOrCartPosts ==========================\n")
+};
+
+
+// Function to fetch documents from references
+async function fetchDocumentsFromReferences(referenceList) {
+    try {
+        const fetchPromises = referenceList.map((reference) => reference.get());
+        const documentSnapshots = await Promise.all(fetchPromises);
+    
+        const documents = documentSnapshots.map((snapshot) => {
+            if (snapshot.exists) {
+                return snapshot.data();
+            } else {
+                return null;
+            }
+        });
+  
+        return documents;
+    } catch (error) {
+        console.error("Error fetching documents:", error);
+        throw error;
+    }
+}
 
 
 while (true) {
@@ -1327,6 +1411,9 @@ while (true) {
             break;
         case 'addOrRemoveCartPost':
             result = await addOrRemoveCartPost(message.data);
+            break;
+        case 'getLikedOrCartPosts':
+            result = await getLikedOrCartPosts(message.data);
             break;
         default:
           break;
