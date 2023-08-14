@@ -1072,8 +1072,9 @@ const addCommentToPost = async (taskData) => {
     // Load the new comment to firestore
     await postCommentsRef.update({ comments: admin.firestore.FieldValue.arrayUnion(newComment)})
     .then(() => {
+        const jsonData = JSON.stringify(newComment);
         console.log('addCommentToPost - Document and liked reference created successfully.'); 
-        parentPort.postMessage({ success: true, data: "Success"});
+        parentPort.postMessage({ success: true, data: jsonData});
     })
     .catch(error => {
         console.error('addCommentToPost - ', error);
@@ -1122,42 +1123,47 @@ const addOrRemoveLikeToPostComment = async (taskData) => {   // not working <<<<
 
     const commentRef = db.collection("users_posts").doc(postOwner).collection("posts").doc(postId);
 
-    // await commentRef.get()
-    // .then(async (doc) => {
-    //     const jsonData = JSON.stringify(doc.data().comments[position].liked);
-    //     console.log("doc = " + jsonData);
-    //     let likedArray = doc.data().comments[position].liked;
+    await commentRef.get()
+    .then(async (doc) => {
+        const jsonData = JSON.stringify(doc.data().comments[position].liked);
+        console.log("doc = " + jsonData);
+        let post = doc.data();
+        let likedArray = post.comments[position].liked;
 
-    //     if (likedArray && likedArray.includes(uid)){
-    //         likedArray.splice(position,1);
-    //         await commentRef.collection("comments").doc(position).set()
-    //         .then(() => {
-    //             console.log("addOrRemoveLikeToPostComment - Liked removed successfully.");
-    //             parentPort.postMessage({ success: true, data: false });
-    //         })
-    //         .catch(error => {
-    //             console.error('addOrRemoveLikeToPostComment - if - error - ', error);
-    //             parentPort.postMessage({ success: false, error: "Error: " + error });
-    //         });
-    //     }
-    //     else {
-    //         likedArray.comments[position].liked.push(uid)
+        const indexToRemove = likedArray.indexOf(uid);
+        if (indexToRemove !== -1) {
+            post.comments[position].liked.splice(indexToRemove, 1);
+            const jsonDataAfter = JSON.stringify(post.comments[position].liked);
+            console.log("doc after remove = " + jsonDataAfter);
 
-    //         await commentRef.update({ liked: admin.firestore.FieldValue.arrayUnion(uid)})
-    //         .then(() => {
-    //             console.log("addOrRemoveLikeToPostComment - Liked added successfully.");
-    //             parentPort.postMessage({ success: true, data: true });
-    //         })
-    //         .catch(error => {
-    //             console.error('addOrRemoveLikeToPostComment - else - error - ', error);
-    //             parentPort.postMessage({ success: false, error: "Error: " + error });
-    //         });
-    //     }
-    // })
-    // .catch(error => {
-    //     console.error('addOrRemoveLikeToPostComment - Erorr - ', error);
-    //     parentPort.postMessage({ success: false, error: "Error: " + error });
-    // });
+            await commentRef.set(post, { merge: true }) // Use merge: true to avoid overwriting other fields
+            .then(() => {
+                console.log("addOrRemoveLikeToPostComment - Liked removed successfully.");
+                parentPort.postMessage({ success: true, data: false });
+            })
+            .catch(error => {
+                console.error('addOrRemoveLikeToPostComment - if - error - ', error);
+                parentPort.postMessage({ success: false, error: "Error: " + error });
+            });
+        } 
+        else {
+            console.log('Element not found in the array.');
+            post.comments[position].liked.push(uid);
+            await commentRef.set(post, { merge: true })
+            .then(() => {
+                console.log("addOrRemoveLikeToPostComment - Liked added successfully.");
+                parentPort.postMessage({ success: true, data: true });
+            })
+            .catch(error => {
+                console.error('addOrRemoveLikeToPostComment - else - error - ', error);
+                parentPort.postMessage({ success: false, error: "Error: " + error });
+            });
+        }
+    })
+    .catch(error => {
+        console.error('addOrRemoveLikeToPostComment - Erorr - ', error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    });
 
     
     console.log(" ======================== out of addOrRemoveLikeToPostComment ==========================\n")

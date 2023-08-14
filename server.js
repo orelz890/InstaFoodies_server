@@ -288,7 +288,7 @@ app.get('/getContactsUsers/:uid', (req, res) => {
  * @param postId {@code string}
  * @param uid {@code string}
  * @param comment {@code string}
- * @returns void
+ * @returns Comment
  */
 app.post('/addCommentToPost/:postOwnerId/:postId/:uid/:comment/:name/:photo/:commentId', (req, res) => { 
   addCommentToPostHandler(req, res)})
