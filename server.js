@@ -323,7 +323,7 @@ app.get('/getPostComments/:postOwnerId/:postId', (req, res) => {
  * @param postId {@code string}
  * @returns boolean
  */
-app.post('/addOrRemoveCartPost/:postOwner/:postId/:uid', (req, res) => { 
+app.patch('/addOrRemoveCartPost/:uid/:postOwnerId/:postId', (req, res) => { 
   addOrRemoveCartPostHandler(req, res)})
 
 
