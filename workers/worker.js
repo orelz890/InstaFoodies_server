@@ -1052,7 +1052,7 @@ const addOrRemovePostLiked = async (taskData) => {
 
 
 const addCommentToPost = async (taskData) => {
-    console.log(" ======================== im in addOrRemovePostLiked ==========================\n")
+    console.log(" ======================== im in addCommentToPost ==========================\n")
 
     const { postOwnerId, postId, uid, comment, name, photo, commentId } = taskData;
 
@@ -1183,63 +1183,163 @@ const addOrRemoveCartPost = async (taskData) => {
 
     const cartRef = db.collection("users_cart_posts").doc(uid);
     
-    // If its the first recipe post added create the cart list
+    // const postRef = db.collection("users_posts").doc(postOwnerId).collection("posts").doc(postId);
+    // const userLikedPostsRef = db.collection("users_liked_posts").doc(uid);
+
+    // If its the first like of this user create the list first
     await cartRef.get()
     .then(async doc => {
-        let jsonData = JSON.stringify(doc);
-        console.log("doc = " + jsonData);
-        if (!doc.exists || doc.exists && !doc.data().cart) {
+        if (!doc.exists || doc.exists && !doc.data().cart_list) {
             // Document doesn't exist, create it and add the "Liked" array
             await cartRef.set({
-                cart: [] // Create the array 
+                cart_list: [] // Create the array with the user's ID
             }, { merge: true }); // Use merge: true to avoid overwriting other fields
-            console.log('Document and cart reference created successfully.'); 
+            console.log('Document and liked reference created successfully.'); 
         }
+    });
 
-        // Check if cart contains the post already
-        let cartArray = [];
+    postRef.get()
+    .then(async doc => {
+        if (doc.exists) {
 
-        if (doc.data().cart) {
-            cartArray = doc.data().cart;
-        }
+            const cartArray = doc.data().cart_list;
 
-        console.log("\n\npostRef.posts = " + postRef["_path"]["segments"][3] + "\n\n");
+            // If its the first like of the post create the list first 
+            if (!cartArray){
+                console.log("im here please see me");
+                // Document doesn't exist, create it and add the "Liked" array
+                await postRef.set({
+                    cart_list: [] // Create the array with the user's ID
+                }, { merge: true }); // Use merge: true to avoid overwriting other fields
+                console.log('Document and cart_list reference created successfully.');
+            }
+            console.log("cartArray = " + cartArray);
 
-        // If the user already added this post remove it from his cart
-        if (cartArray && cartArray.some(cartItem => cartItem["_path"]["segments"][3] === postRef["_path"]["segments"][3])){
-            console.log('addOrRemoveCartPost - User already added this post remove it from his cart.');
-            
-            await cartRef.update({ cart: admin.firestore.FieldValue.arrayRemove(postRef) })
-            .then(async () => {
-                console.log('addOrRemoveCartPost - PostRef removed from the "cart" array.');
-                parentPort.postMessage({ success: true, data: false});
-            })
-            .catch(error => {
-                console.error('addOrRemoveCartPost - Error removing recipe post from array:', error);
-                parentPort.postMessage({ success: false, error: "Error: " + error });
-            });
-        }
-        else // User wants to add this recipe post to cart
+            // If the user already liked this post remove his like
+            if (cartArray && cartArray.includes(uid)){
+                console.log('addOrRemoveCartPost - User already liked this post. Remove like.');
+                await postRef.update({ cart_list: admin.firestore.FieldValue.arrayRemove(uid) })
+                .then(async () => {
+                    console.log('addOrRemoveCartPost - User\'s ID removed from the "cart_list" array.');
+                    await cartRef
+                    .update({ cart_list: admin.firestore.FieldValue.arrayRemove(postRef) })
+                        .then(() => {
+                            console.log('addOrRemoveCartPost - Post removed from the User\'s "cart_list" array.');
+                            parentPort.postMessage({ success: true, data: false});
+                        })
+                        .catch(error => {
+                            console.log('addOrRemoveCartPost - Error -Post not removed from the User\'s "cart_list" array!');
+                            parentPort.postMessage({ success: false, error: "Error in addOrRemoveCartPost: " + error });
+                        });
+                })
+                .catch(error => {
+                    console.error('addOrRemoveCartPost - Error removing from array:', error);
+                    parentPort.postMessage({ success: false, error: "Error in addOrRemoveCartPost: " + error });
+                });
+
+            } 
+            else // The user is not in the post liked list so add his like
+            {
+                console.log('addOrRemoveCartPost - User didnt add this post to cart yet. Add to cart');
+                await postRef.update({ cart_list: admin.firestore.FieldValue.arrayUnion(uid)})
+                .then(async () => {
+                    console.log('addOrRemoveCartPost - Value set to Firestore document successfully');
+                    await cartRef.update({ cart_list: admin.firestore.FieldValue.arrayUnion(postRef)})
+                    .then(() => {
+                        console.log('addOrRemoveCartPost - Value set to user cart_list list Firestore document successfully');
+                        parentPort.postMessage({ success: true, data: true});
+                    })
+                    .catch(error => {
+                        console.error('addOrRemoveCartPost - Error setting value to Firestore document22:', error);
+                        parentPort.postMessage({ success: false, error: "Error in addOrRemoveCartPost: " + error });
+                    });
+                })
+                .catch(error => {
+                    console.error('addOrRemoveCartPost - Error setting value to Firestore document:', error);
+                    parentPort.postMessage({ success: false, error: "Error in addOrRemoveCartPost: " + error });
+                });
+            }
+        } 
+        else // problem
         {
-            console.log('addOrRemoveCartPost - User wants to add this recipe post to cart');
-            await cartRef.update({ cart: admin.firestore.FieldValue.arrayUnion(postRef)})
-            .then(async () => {
-                console.log('addOrRemoveCartPost - Recipe post added to cart successfully');
-                parentPort.postMessage({ success: true, data: true});
-            })
-            .catch(error => {
-                console.error('addOrRemoveCartPost - Error - adding recipe post to cart: ', error);
-                parentPort.postMessage({ success: false, error: "Error: " + error });
-            });
+            console.log('addOrRemoveCartPost: cart_list Document not found!');
+            parentPort.postMessage({ success: false, error: "cart_list Document not found!"});
         }
-    })
-    .catch(error => {
-        console.error('addOrRemoveCartPost - Error - Cart array retrival: ', error);
+    }).catch(error => {
+        console.error('addOrRemoveCartPost - Error querying document:', error);
         parentPort.postMessage({ success: false, error: "Error: " + error });
     });
 
     console.log(" ======================== out of addOrRemoveCartPost ==========================\n")
 };
+
+
+// const addOrRemoveCartPost = async (taskData) => {
+//     console.log(" ======================== im in addOrRemoveCartPost ==========================\n")
+
+//     const { uid, postOwnerId, postId } = taskData;
+
+//     const postRef = db.collection("users_posts").doc(postOwnerId).collection("posts").doc(postId);
+
+//     const cartRef = db.collection("users_cart_posts").doc(uid);
+    
+//     // If its the first recipe post added create the cart list
+//     await cartRef.get()
+//     .then(async doc => {
+//         let jsonData = JSON.stringify(doc);
+//         console.log("doc = " + jsonData);
+//         if (!doc.exists || doc.exists && !doc.data().cart) {
+//             // Document doesn't exist, create it and add the "Liked" array
+//             await cartRef.set({
+//                 cart: [] // Create the array 
+//             }, { merge: true }); // Use merge: true to avoid overwriting other fields
+//             console.log('Document and cart reference created successfully.'); 
+//         }
+
+//         // Check if cart contains the post already
+//         let cartArray = [];
+
+//         if (doc.data().cart) {
+//             cartArray = doc.data().cart;
+//         }
+
+//         console.log("\n\npostRef.posts = " + postRef["_path"]["segments"][3] + "\n\n");
+
+//         // If the user already added this post remove it from his cart
+//         if (cartArray && cartArray.some(cartItem => cartItem["_path"]["segments"][3] === postRef["_path"]["segments"][3])){
+//             console.log('addOrRemoveCartPost - User already added this post remove it from his cart.');
+            
+//             await cartRef.update({ cart: admin.firestore.FieldValue.arrayRemove(postRef) })
+//             .then(async () => {
+//                 console.log('addOrRemoveCartPost - PostRef removed from the "cart" array.');
+//                 parentPort.postMessage({ success: true, data: false});
+//             })
+//             .catch(error => {
+//                 console.error('addOrRemoveCartPost - Error removing recipe post from array:', error);
+//                 parentPort.postMessage({ success: false, error: "Error: " + error });
+//             });
+//         }
+//         else // User wants to add this recipe post to cart
+//         {
+//             console.log('addOrRemoveCartPost - User wants to add this recipe post to cart');
+//             await cartRef.update({ cart: admin.firestore.FieldValue.arrayUnion(postRef)})
+//             .then(async () => {
+//                 console.log('addOrRemoveCartPost - Recipe post added to cart successfully');
+//                 parentPort.postMessage({ success: true, data: true});
+//             })
+//             .catch(error => {
+//                 console.error('addOrRemoveCartPost - Error - adding recipe post to cart: ', error);
+//                 parentPort.postMessage({ success: false, error: "Error: " + error });
+//             });
+//         }
+//     })
+//     .catch(error => {
+//         console.error('addOrRemoveCartPost - Error - Cart array retrival: ', error);
+//         parentPort.postMessage({ success: false, error: "Error: " + error });
+//     });
+
+//     console.log(" ======================== out of addOrRemoveCartPost ==========================\n")
+// };
 
 
 const getLikedOrCartPosts = async (taskData) => {
@@ -1257,19 +1357,24 @@ const getLikedOrCartPosts = async (taskData) => {
         if (!snapshot.empty) {
             let i = 0;
             if (collectionName === "users_liked_posts"){
-                snapshot.data().liked_list.forEach((doc) => {
-                    const jsonData = JSON.stringify(doc);
-                    console.log(i++ + ")  " + jsonData);
-                    //   const post = getObjectFromRef(data)
-                    postsRef.push(doc);
-                });
+                if (snapshot.data() && snapshot.data().liked_list){
+
+                    snapshot.data().liked_list.forEach((doc) => {
+                        const jsonData = JSON.stringify(doc);
+                        console.log(i++ + ")  " + jsonData);
+                        //   const post = getObjectFromRef(data)
+                        postsRef.push(doc);
+                    });
+                }
             }
             else {
-                snapshot.data().cart.forEach((doc) => {
-                    const jsonData = JSON.stringify(doc);
-                    console.log(i++ + ")  " + jsonData);
-                    postsRef.push(doc);
-                });
+                if (snapshot.data() && snapshot.data().cart){
+                    snapshot.data().cart.forEach((doc) => {
+                        const jsonData = JSON.stringify(doc);
+                        console.log(i++ + ")  " + jsonData);
+                        postsRef.push(doc);
+                    });
+                }
             }
 
             let postJsonData = JSON.stringify(postsRef);
