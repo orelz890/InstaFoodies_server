@@ -1514,6 +1514,8 @@ const followUnfollow = async (taskData) => {
     const userRef = db.collection("users_account_settings").doc(uid);
     const friendRef = db.collection("users_account_settings").doc(friendUid);
 
+    console.log("\n\nfollowOrNot = " + followOrNot + "\n\n");
+    
     // Update the user followings details & friends followers details.
     if (followOrNot){
         await userRef.update({ 
@@ -1522,7 +1524,7 @@ const followUnfollow = async (taskData) => {
         })
         .then(async () => {
             // Add new following & followers
-            await friendUid.update({ 
+            await friendRef.update({ 
                 followers_ids: admin.firestore.FieldValue.arrayUnion(uid),
                 followers: admin.firestore.FieldValue.increment(1)
             })
@@ -1549,7 +1551,7 @@ const followUnfollow = async (taskData) => {
         })
         .then(async () => {
             // Add new following & followers
-            await friendUid.update({ 
+            await friendRef.update({ 
                 followers_ids: admin.firestore.FieldValue.arrayRemove(uid),
                 followers: admin.firestore.FieldValue.increment(-1)
             })
