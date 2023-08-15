@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import {deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {followUnfollowHandler, deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -353,6 +353,19 @@ app.patch('/addOrRemoveCartPost/:uid/:postOwnerId/:postId', (req, res) => {
  */
 app.patch('/deleteProfilePosts/:uid', (req, res) => { 
   deleteProfilePostsHandler(req, res)})
+
+
+/**
+ * Follow or unfollow a friend. 
+ * @param uid {@code string}
+ * @param friendUid {@code string}
+ * @param followOrNot {@code string}
+ * @returns success flag {@code boolean}
+ */
+app.patch('/followUnfollow/:uid/:friendUid/:followOrNot', (req, res) => { 
+  followUnfollowHandler(req, res)})
+
+
 
 
 

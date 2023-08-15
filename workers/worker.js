@@ -9,9 +9,6 @@ import collections from 'collections';
 import { error } from 'console';
 const { Queue, List } = collections;
 
-
-// const int32Array = new Int32Array(new SharedArrayBuffer(4));
-
 const saltRounds = 10;
 
 // function verifyUser(password, hash) {}
@@ -784,7 +781,6 @@ const updateFollowersFeeds = async (uid, ref) => {
     });
 
     return "success";
-
 }
 
 
@@ -794,16 +790,26 @@ const uploadNewPost = async (taskData) => {
 
     const post = {work, recipe, caption, date_created, image_paths, liked_list, comments_list, post_id, user_id, tags};
     const postRef = db.collection("users_posts").doc(user_id).collection("posts").doc(post_id);
-    postRef.set(post).then(() => {
+    postRef.set(post).then(async () => {
         console.log("\nuploadNewPost - post Added successfully!\n");
+
         updateFollowersFeeds(user_id, postRef);
+
+        // Increment posts uploaded by 1 in users_account_settings collection
+        await db.collection("users_account_settings").doc(user_id).update({posts: admin.firestore.FieldValue.increment(1)})
+        .then(() => {
+            console.log('posts count updated successfully');
+        })
+        .catch((error) => {
+            console.error('Error setting value to Firestore document:', error);
+        });
+
         parentPort.postMessage({ success: true, data: "Success" });
     })
     .catch((error) => {
         console.log("\nuploadNewPost - Error: " + error + "\n");
         parentPort.postMessage({ success: false, error: "Error: " + error });
     });
-
 }
 
 
@@ -836,17 +842,18 @@ const getUserFeedPosts = async (taskData) => {
 
     let collectionName = "users_feeds";
 
+    // Fatch all user feed posts refrences
     let postsRefList = [];
+    let posts = [];
     console.log("uid - " + uid);
 
+    // Fatch posts of people you follow
     await db.collection(collectionName).doc(uid).get()
     .then((dataSnapshot) => {
         if (dataSnapshot.exists){
             if (dataSnapshot.data() && dataSnapshot.data().posts) {
-                console.log("dataSnapshot.data().posts - " + JSON.stringify(dataSnapshot.data().posts, null, 2));
                 dataSnapshot.data().posts
                 .forEach((doc) => {
-                    // console.log("\ndoc.data() - " + JSON.stringify(doc, null, 2));
                     postsRefList.push(doc);
                 });
             } 
@@ -862,20 +869,50 @@ const getUserFeedPosts = async (taskData) => {
         console.error('Error :', error);
 
     });
-     
-
-    // console.log("\n\nposts = " + JSON.stringify(postsRefList, null, 2));
 
 
+    // Fatch all the user uploaded posts
+    const collectionRef = db.collection("users_posts").doc(uid).collection("posts");
+    const snapshot = await collectionRef.get();
+    
+    if (!snapshot.empty) {
+        snapshot.forEach((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                posts.push(data);
+            }
+        });
+    } else {
+        console.log("No posts found in the collection");
+    }
+
+    // Fatch all posts using the refrence list (postsRefList)
     fetchDocumentsFromReferences(postsRefList, uid, collectionName)
     .then((documents) => {
         console.log("\npostsList = " + JSON.stringify(documents, null, 2));
 
+        // Add followings posts to the posts array
+        posts.concat(documents);
+
+        // console.log("\n\nBefore:\n\n" + JSON.stringify(posts, null , 2));
+
+        // Sort the posts according to their time stamp
+        posts.sort((a, b) => {
+            console.log("\n\na = " + JSON.stringify(a, null , 2) + "\n\n");
+            
+            const compare = Date.parse(a.date_created.trim()) - Date.parse(b.date_created.trim())
+            console.log("\n\ncompare = " + Date.parse(a.date_created) + " - " + Date.parse(b.date_created) + "== " + compare + "\n\n");
+
+            return compare});
+
+        // console.log("\n\nAfter:\n\n" + JSON.stringify(posts, null , 2));
+
         // Create the response
         const response = {
-            posts: documents
+            posts: posts
         }
 
+        // Response to android
         parentPort.postMessage({ success: true, data: JSON.stringify(response)});
     })
     .catch((error) => {
@@ -1046,7 +1083,7 @@ const addOrRemovePostLiked = async (taskData) => {
                 });
             }
         } 
-        else // problem
+        else // problem - Liked Document not found!
         {
             console.log('addOrRemovePostLiked: Liked Document not found!');
             parentPort.postMessage({ success: false, error: "Liked Document not found!"});
@@ -1120,7 +1157,7 @@ const getPostComments = async (taskData) => {
     .catch(error => {
         console.error('getPostComments - ', error);
         parentPort.postMessage({ success: false, error: "Error: " + error });
-    }); // Use merge: true to avoid overwriting other fields
+    });
     
     console.log(" ======================== out of getPostComments ==========================\n")
 };
@@ -1192,9 +1229,6 @@ const addOrRemoveCartPost = async (taskData) => {
 
     const cartRef = db.collection("users_cart_posts").doc(uid);
     
-    // const postRef = db.collection("users_posts").doc(postOwnerId).collection("posts").doc(postId);
-    // const userLikedPostsRef = db.collection("users_liked_posts").doc(uid);
-
     // If its the first like of this user create the list first
     await cartRef.get()
     .then(async doc => {
@@ -1213,18 +1247,18 @@ const addOrRemoveCartPost = async (taskData) => {
 
             const cartArray = doc.data().cart_list;
 
-            // If its the first like of the post create the list first 
+            // If its the first cart addition create the cart first 
             if (!cartArray){
                 console.log("im here please see me");
-                // Document doesn't exist, create it and add the "Liked" array
+                // Document doesn't exist, create it.
                 await postRef.set({
-                    cart_list: [] // Create the array with the user's ID
+                    cart_list: []
                 }, { merge: true }); // Use merge: true to avoid overwriting other fields
                 console.log('Document and cart_list reference created successfully.');
             }
             console.log("cartArray = " + cartArray);
 
-            // If the user already liked this post remove his like
+            // If the user already liked this post remove this recipe from cart
             if (cartArray && cartArray.includes(uid)){
                 console.log('addOrRemoveCartPost - User already liked this post. Remove like.');
                 await postRef.update({ cart_list: admin.firestore.FieldValue.arrayRemove(uid) })
@@ -1247,7 +1281,7 @@ const addOrRemoveCartPost = async (taskData) => {
                 });
 
             } 
-            else // The user is not in the post liked list so add his like
+            else // The recipe is not in the user cart so add it
             {
                 console.log('addOrRemoveCartPost - User didnt add this post to cart yet. Add to cart');
                 await postRef.update({ cart_list: admin.firestore.FieldValue.arrayUnion(uid)})
@@ -1269,7 +1303,7 @@ const addOrRemoveCartPost = async (taskData) => {
                 });
             }
         } 
-        else // problem
+        else // problem - cart_list Document not found!
         {
             console.log('addOrRemoveCartPost: cart_list Document not found!');
             parentPort.postMessage({ success: false, error: "cart_list Document not found!"});
@@ -1360,11 +1394,12 @@ const getLikedOrCartPosts = async (taskData) => {
 
     let postsRef = [];
 
-    // Collect All the necessary posts refrences
     await Ref.get()
     .then(async (snapshot) => {
         if (!snapshot.empty) {
             let i = 0;
+
+            // Collect All the necessary posts refrences
             if (collectionName === "users_liked_posts"){
                 if (snapshot.data() && snapshot.data().liked_list){
 
@@ -1399,8 +1434,8 @@ const getLikedOrCartPosts = async (taskData) => {
                     posts: documents
                 }
             
-                let ans = JSON.stringify(response);
-                parentPort.postMessage({ success: true, data: ans});
+                // Response for android
+                parentPort.postMessage({ success: true, data: JSON.stringify(response)});
             })
             .catch((error) => {
                 console.error("getLikedOrCartPosts - fetchDocumentsFromReferences - Error: ", error);
@@ -1451,6 +1486,12 @@ const deleteProfilePosts = async (taskData) => {
             console.log("post " + post_id + " deleted successfully");
         }));
 
+        // Decrement the counter value by -1
+        const accountSettingsRef = db.collection("users_account_settings").doc(uid);
+        await accountSettingsRef.update({
+            posts: admin.firestore.FieldValue.increment(-PostsId.length)
+        });
+
         // Send success response back to the client
         parentPort.postMessage({ success: true, data: true });
     } catch (error) {
@@ -1463,10 +1504,79 @@ const deleteProfilePosts = async (taskData) => {
 };
 
 
+const followUnfollow = async (taskData) => {
+    console.log(" ======================== im in followUnfollow ==========================\n")
+
+    const { uid, friendUid, followOrNot } = taskData;
+
+    // console.log("\nPostsId = " + JSON.stringify(PostsId, null, 2));
+
+    const userRef = db.collection("users_account_settings").doc(uid);
+    const friendRef = db.collection("users_account_settings").doc(friendUid);
+
+    // Update the user followings details & friends followers details.
+    if (followOrNot){
+        await userRef.update({ 
+            following_ids: admin.firestore.FieldValue.arrayUnion(friendUid),
+            following: admin.firestore.FieldValue.increment(1)
+        })
+        .then(async () => {
+            // Add new following & followers
+            await friendUid.update({ 
+                followers_ids: admin.firestore.FieldValue.arrayUnion(uid),
+                followers: admin.firestore.FieldValue.increment(1)
+            })
+            .then(() => {
+                console.log("followUnfollow - If - All done successfully updated user and friend users_account_settings!");
+                parentPort.postMessage({ success: true, data: true });
+            })
+            .catch(error => {
+                console.error('followUnfollow - Error updating friend users_account_settings: ', error);
+                parentPort.postMessage({ success: false, data: false , error: "Error: " + error });
+            });
+        })
+        .catch(error => {
+            console.error('followUnfollow - Else - Error updating user users_account_settings: ', error);
+            parentPort.postMessage({ success: false, data: false,  error: "Error: " + error });
+        });
+    }
+    // Remove following & followers
+    else
+    {
+        await userRef.update({ 
+            following_ids: admin.firestore.FieldValue.arrayRemove(friendUid),
+            following: admin.firestore.FieldValue.increment(-1)
+        })
+        .then(async () => {
+            // Add new following & followers
+            await friendUid.update({ 
+                followers_ids: admin.firestore.FieldValue.arrayRemove(uid),
+                followers: admin.firestore.FieldValue.increment(-1)
+            })
+            .then(() => {
+                console.log("followUnfollow - Else - All done successfully updated user and friend users_account_settings!");
+                parentPort.postMessage({ success: true, data: true });
+            })
+            .catch(error => {
+                console.error('followUnfollow - Else - Error updating friend users_account_settings: ', error);
+                parentPort.postMessage({ success: false, data: false , error: "Error: " + error });
+            });
+        })
+        .catch(error => {
+            console.error('followUnfollow - Else - Error updating user users_account_settings: ', error);
+            parentPort.postMessage({ success: false, data: false,  error: "Error: " + error });
+        });
+    }
+    
+    console.log(" ======================== out of followUnfollow ==========================\n");
+};
+
+
 
 // Function to fetch documents from references
 async function fetchDocumentsFromReferences(referenceList, uid, collectionName) {
     try {
+        // Fatch all documents
         const fetchPromises = referenceList.map((reference) => reference.get());
         const documentSnapshots = await Promise.all(fetchPromises);
 
@@ -1480,6 +1590,7 @@ async function fetchDocumentsFromReferences(referenceList, uid, collectionName) 
             }
         }));
 
+        // Remove refrences to null object
         const removePromises = problematicIndexes.map(async (index) => {
             const problematicPostRef = referenceList[index];
             const Ref = db.collection(collectionName).doc(uid);
@@ -1499,6 +1610,7 @@ async function fetchDocumentsFromReferences(referenceList, uid, collectionName) 
 
         await Promise.all(removePromises);
 
+        // Clear the null object collected from collection
         const filteredDocuments = documents.filter((document) => document !== null);
         console.log("\filteredDocuments = " + JSON.stringify(filteredDocuments, null, 2));
 
@@ -1600,6 +1712,9 @@ while (true) {
             break;
         case 'deleteProfilePosts':
             result = await deleteProfilePosts(message.data);
+            break;
+        case 'followUnfollow':
+            result = await followUnfollow(message.data);
             break;
         default:
           break;

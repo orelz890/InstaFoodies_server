@@ -33,6 +33,7 @@ const ADD_OR_REMOVE_LIKE_TO_COMMENT = 22;
 const ADD_OR_REMOVE_RECIPE_POST_TO_CART = 23;
 const GET_LIKED_OR_CART_POSTS = 24;
 const DELETE_USER_POST = 25;
+const FOLLOW_OR_UNFOLLOW = 26;
 
 
 
@@ -453,4 +454,17 @@ const deleteProfilePostsHandler = async (req, res) => {
     addTask(taskData, res);
 };
 
-  export {deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+
+const followUnfollowHandler = async (req, res) => {
+    console.log("im in followUnfollowHandler\n");
+
+    const taskData = {
+        work: FOLLOW_OR_UNFOLLOW,
+        uid: req.params.uid,
+        friendUid: req.params.friendUid,
+        followOrNot: req.params.followOrNot,
+    };
+    addTask(taskData, res);
+};
+
+  export {followUnfollowHandler, deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
