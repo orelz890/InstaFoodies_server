@@ -713,24 +713,42 @@ const getBothUserAndHisSettings = async (taskData) => {
 };
 
 
-const saveRef = async (pathToSaveTo, ref) => {
+const saveRef = async (refsToSaveTo, postRef) => {
 
-    var userRef;
+    // console.log
+    const updatePromises = refsToSaveTo.map(async (followerDocRef) => {
+        try {
+            // Update the follower's document to include the new reference
+            await followerDocRef.update({
+                posts: admin.firestore.FieldValue.arrayUnion(postRef)
+            })
+            .catch(async error => {
+                const errorMessage = error.toString();
+                const parts = errorMessage.split(" ");
+                if (parts[2] && parts[2] === 'NOT_FOUND:') {
+                    // If the document doesn't exist, create it with the posts array
+                    try {
+                        // Feed doesn't exist, create it
+                        await followerDocRef.set({
+                            posts: [postRef]
+                        }, { merge: true });
+                        console.log('Feed created successfully.');
+                    } catch (createError) {
+                        console.error(`Error creating document and saving reference in ${followerDocRef.id}: ${createError}`);
+                    }
+                } else {
+                    console.error(`Error saving reference in ${followerDocRef.id}: ${error} , error-code: ${error.code}`);
+                }
 
-    if (ref) {
-        userRef = ref ;
-    }
-    const data = {
-        "author": userRef,
-    }
-
-    await db.doc(pathToSaveTo).set(data)
-    .then(() => {
-        console.log("\n\nsaveRef to " + pathToSaveTo +  " - success!\n\n");
-    })
-    .catch((error) => {
-        console.log("\n\nsaveRef - Error: " + error + "\n\n");
+            });
+            console.log(`Reference saved in ${followerDocRef.id}`);
+        } catch (error) {
+            console.error(`Error saving reference in ${followerDocRef.id}: ${error}`);
+        }
     });
+
+    // Wait for all update operations to complete
+    await Promise.all(updatePromises);
 }
 
 
@@ -747,13 +765,17 @@ const getObjectFromRef = async (data) => {
 
 
 
-const updateFollowersFeeds = async (uid, post_id, ref) => {
-
-    let followers_ids = [];
+const updateFollowersFeeds = async (uid, ref) => {
+    let followersRef = [];
     await db.collection("users_account_settings").doc(uid).get()
     .then(async (doc) => {
         if(doc.exists){
-            followers_ids = doc.data().followers_ids; // Replace "fieldName" with the name of the field you want to retrieve
+            const followers_ids = doc.data().followers_ids;
+            for (let i = 0; i < followers_ids.length; i++) {
+                const id = followers_ids[i];
+                followersRef.push(db.collection("users_feeds").doc(id))
+            }
+            saveRef(followersRef , ref);
         }
     })
     .catch((error) => {
@@ -761,15 +783,8 @@ const updateFollowersFeeds = async (uid, post_id, ref) => {
         return error;
     });
 
-    followers_ids.push(uid);
-
-    for (let i = 0; i < followers_ids.length; i++) {
-        const id = followers_ids[i];
-        console.log("id(" + i + "): " + id);
-        saveRef("users_feeds/" + id + "/feed/" + post_id, ref);
-    }
-
     return "success";
+
 }
 
 
@@ -781,7 +796,7 @@ const uploadNewPost = async (taskData) => {
     const postRef = db.collection("users_posts").doc(user_id).collection("posts").doc(post_id);
     postRef.set(post).then(() => {
         console.log("\nuploadNewPost - post Added successfully!\n");
-        updateFollowersFeeds(user_id, post_id, postRef);
+        updateFollowersFeeds(user_id, postRef);
         parentPort.postMessage({ success: true, data: "Success" });
     })
     .catch((error) => {
@@ -815,67 +830,61 @@ const uploadProfilePhoto = async (taskData) => {
   
 
 const getUserFeedPosts = async (taskData) => {
+    console.log(" ======================== in of getUserFeedPosts ==========================\n")
 
     const { uid } = taskData;
 
-    let posts = [];
-    const collectionRef = db.collection("users_feeds").doc(uid).collection("feed");
-    const snapshot = await collectionRef.get();
-    
-    if (!snapshot.empty) {
-      snapshot.forEach((doc) => {
-        if (doc.exists) {
-          const data = doc.data();
+    let collectionName = "users_feeds";
 
-          const post = getObjectFromRef(data)
-          posts.push(post);
+    let postsRefList = [];
+    console.log("uid - " + uid);
+
+    await db.collection(collectionName).doc(uid).get()
+    .then((dataSnapshot) => {
+        if (dataSnapshot.exists){
+            if (dataSnapshot.data() && dataSnapshot.data().posts) {
+                console.log("dataSnapshot.data().posts - " + JSON.stringify(dataSnapshot.data().posts, null, 2));
+                dataSnapshot.data().posts
+                .forEach((doc) => {
+                    // console.log("\ndoc.data() - " + JSON.stringify(doc, null, 2));
+                    postsRefList.push(doc);
+                });
+            } 
+            else {
+                console.log("getUserFeedPosts - No posts found in the collection1");
+            }
         }
-      });
-    } else {
-      console.log("No posts found in the collection");
-    }
-
-    await db.collection("users").doc(uid).get()
-    .then(async doc => {
-        // console.log("User collection= " + doc.data())
-        if (doc.exists) {
-            const user = doc.data();
-            await db.collection("users_account_settings").doc(uid).get()
-            .then(doc2 => {
-                // console.log("Settings collection= " + doc.data())
-                if (doc.exists) {
-                    const settings = doc2.data();
-
-                    const data = {
-                        success: true,
-                        user: user,
-                        account: settings,
-                        posts: posts
-                      };
-                      const jsonData = JSON.stringify(data);
-                      console.log(jsonData);
-
-                      parentPort.postMessage({
-                        success: true,
-                        data: jsonData
-                      });
-                } else {
-                    console.log('getUserFeedPosts: Account Document not found!');
-                    parentPort.postMessage({ success: false, error: "Account Document not found!"});
-                }
-            }).catch(error => {
-                console.log('getUserFeedPosts: Error getting Account document:', error);
-                parentPort.postMessage({ success: false, error: "Error: " + error });
-            });
-
-        } else {
-            console.log('getUserFeedPosts: User Document not found!');
-            parentPort.postMessage({ success: false, error: "User Document not found!"});
+        else {
+            console.log("getUserFeedPosts - No posts found in the collection2");
         }
-    }).catch(error => {
-        console.log('getUserFeedPosts: Error getting User document:', error);
-        parentPort.postMessage({ success: false, error: "Error: " + error });
+    })
+    .catch(error => {
+        console.error('Error :', error);
+
     });
+     
+
+    // console.log("\n\nposts = " + JSON.stringify(postsRefList, null, 2));
+
+
+    fetchDocumentsFromReferences(postsRefList, uid, collectionName)
+    .then((documents) => {
+        console.log("\npostsList = " + JSON.stringify(documents, null, 2));
+
+        // Create the response
+        const response = {
+            posts: documents
+        }
+
+        parentPort.postMessage({ success: true, data: JSON.stringify(response)});
+    })
+    .catch((error) => {
+        console.error("getUserFeedPosts - fetchDocumentsFromReferences - Error: ", error);
+        parentPort.postMessage({ success: false, error: "Error: " + error});
+
+    });
+
+    console.log(" ======================== out of getUserFeedPosts ==========================\n")
 
 }    
 
@@ -1395,6 +1404,7 @@ const getLikedOrCartPosts = async (taskData) => {
             })
             .catch((error) => {
                 console.error("getLikedOrCartPosts - fetchDocumentsFromReferences - Error: ", error);
+                parentPort.postMessage({ success: false, error: "Error: " + error });
             });
         } 
         else // No posts found in the collection
@@ -1452,51 +1462,7 @@ const deleteProfilePosts = async (taskData) => {
     console.log(" ======================== out of deleteProfilePosts ==========================\n");
 };
 
-// const deleteProfilePosts = async (taskData) => {
-//     console.log(" ======================== im in deleteProfilePosts ==========================\n")
 
-//     const { uid, PostsId } = taskData;
-
-//     console.log("\nPostsId = " + JSON.stringify(PostsId, null, 2));
-
-//     // Create a batched write
-//     const batch = db.batch();
-
-//     for (const documentId of PostsId) {
-//         // Get a reference to the document you want to delete
-//         const docRef = db.collection("users_posts").doc(uid).collection("posts").doc(documentId);
-
-//         // Delete the document reference in the batch
-//         batch.delete(docRef);
-//     }
-
-//     // Commit the batched write
-//     batch.commit()
-//     .then(() => {
-//         // Batch operation completed successfully
-//         console.log('Batch delete successful');
-//     })
-//     .catch((error) => {
-//         // Batch operation failed
-//         console.error('Error performing batch delete:', error);
-//     });
-//     PostsId.forEach(async post_id => {
-//         let postRef = db.collection("users_posts").doc(uid).collection("posts").doc(post_id);
-
-//         await postRef.delete()
-//         .then(() => {
-//             console.log("post " + PostsId + " deleted successfully");
-//             parentPort.postMessage({ success: true, data: true});
-//         })
-//         .catch(error => {
-//             console.error('deleteProfilePosts - Error while deleting post: ', error);
-//             parentPort.postMessage({ success: false, error: "Error: " + error });
-//         });
-//     })
-
-
-//     console.log(" ======================== out of deleteProfilePosts ==========================\n")
-// };
 
 // Function to fetch documents from references
 async function fetchDocumentsFromReferences(referenceList, uid, collectionName) {
@@ -1520,7 +1486,11 @@ async function fetchDocumentsFromReferences(referenceList, uid, collectionName) 
 
             if (collectionName === "users_liked_posts") {
                 await Ref.update({ liked_list: admin.firestore.FieldValue.arrayRemove(problematicPostRef) });
-            } else {
+            }
+            else if (collectionName === "users_feeds"){
+                await Ref.update({ posts: admin.firestore.FieldValue.arrayRemove(problematicPostRef) });
+            }
+            else if (collectionName === "users_cart_posts"){
                 await Ref.update({ cart: admin.firestore.FieldValue.arrayRemove(problematicPostRef) });
             }
 
