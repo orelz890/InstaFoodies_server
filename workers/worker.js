@@ -1575,6 +1575,44 @@ const followUnfollow = async (taskData) => {
 
 
 
+
+
+const reportIllegalPost = async (taskData) => {
+    console.log(" ======================== im in reportIllegalPost ==========================\n")
+
+    const { uid, post_id } = taskData;
+
+    const reportCollectionRef = db.collection("reported_posts").doc(uid);
+    const postRef = db.collection("users_posts").doc(uid).collection("posts").doc(post_id);
+
+
+    // If its the first report of this user create his list
+    await reportCollectionRef.get()
+    .then(async doc => {
+        if (!doc.exists || doc.exists && !doc.data().reported_list) {
+            // Document doesn't exist, create it and add the "Liked" array
+            await reportCollectionRef.set({
+                reported_list: [] // Create the array with the user's ID
+            }, { merge: true }); // Use merge: true to avoid overwriting other fields
+            console.log('reportIllegalPost - Document reference created successfully.'); 
+        }
+    });
+
+    await reportCollectionRef.update({ reported_list: admin.firestore.FieldValue.arrayUnion(postRef)})
+    .then(() => {
+        console.log('reportIllegalPost - Value set to user reported list Firestore document successfully');
+        parentPort.postMessage({ success: true, data: true});
+    })
+    .catch(error => {
+        console.error('reportIllegalPost - Error setting value to Firestore document:', error);
+        parentPort.postMessage({ success: false, error: "Error in addOrRemovePostLiked: " + error });
+    });
+    
+    console.log(" ======================== out of reportIllegalPost ==========================\n");
+};
+
+
+
 // Function to fetch documents from references
 async function fetchDocumentsFromReferences(referenceList, uid, collectionName) {
     try {
@@ -1717,6 +1755,9 @@ while (true) {
             break;
         case 'followUnfollow':
             result = await followUnfollow(message.data);
+            break;
+        case 'reportIllegalPost':
+            result = await reportIllegalPost(message.data);
             break;
         default:
           break;

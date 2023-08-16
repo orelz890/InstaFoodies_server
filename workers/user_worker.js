@@ -28,6 +28,7 @@ const ADD_OR_REMOVE_RECIPE_POST_TO_CART = 23;
 const GET_LIKED_OR_CART_POSTS = 24;
 const DELETE_USER_POST = 25;
 const FOLLOW_OR_UNFOLLOW = 26;
+const REPORT_ILLEGAL_POST = 27;
 
 
 
@@ -130,6 +131,9 @@ class user_worker {
                 break;
             case FOLLOW_OR_UNFOLLOW:
                 this.worker.postMessage({ type: 'followUnfollow', data: taskData });
+                break;
+            case REPORT_ILLEGAL_POST:
+                this.worker.postMessage({ type: 'reportIllegalPost', data: taskData });
                 break;
             default:
                 break;

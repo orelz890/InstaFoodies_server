@@ -34,6 +34,7 @@ const ADD_OR_REMOVE_RECIPE_POST_TO_CART = 23;
 const GET_LIKED_OR_CART_POSTS = 24;
 const DELETE_USER_POST = 25;
 const FOLLOW_OR_UNFOLLOW = 26;
+const REPORT_ILLEGAL_POST = 27;
 
 
 
@@ -467,4 +468,16 @@ const followUnfollowHandler = async (req, res) => {
     addTask(taskData, res);
 };
 
-  export {followUnfollowHandler, deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+
+const reportIllegalPostHandler = async (req, res) => {
+    console.log("im in reportIllegalPostHandler\n");
+
+    const taskData = {
+        work: REPORT_ILLEGAL_POST,
+        uid: req.params.uid,
+        post_id: req.params.post_id,
+    };
+    addTask(taskData, res);
+};
+
+  export {reportIllegalPostHandler, followUnfollowHandler, deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
