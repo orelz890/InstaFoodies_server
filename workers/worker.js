@@ -1412,8 +1412,8 @@ const getLikedOrCartPosts = async (taskData) => {
                 }
             }
             else {
-                if (snapshot.data() && snapshot.data().cart){
-                    snapshot.data().cart.forEach((doc) => {
+                if (snapshot.data() && snapshot.data().cart_list){
+                    snapshot.data().cart_list.forEach((doc) => {
                         const jsonData = JSON.stringify(doc);
                         console.log(i++ + ")  " + jsonData);
                         postsRef.push(doc);
@@ -1515,7 +1515,7 @@ const followUnfollow = async (taskData) => {
     const friendRef = db.collection("users_account_settings").doc(friendUid);
 
     console.log("\n\nfollowOrNot = " + followOrNot + "\n\n");
-    
+
     // Update the user followings details & friends followers details.
     if (followOrNot){
         await userRef.update({ 
