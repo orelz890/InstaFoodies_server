@@ -788,28 +788,71 @@ const uploadNewPost = async (taskData) => {
 
     const {work, recipe, caption, date_created,image_paths, liked_list, comments_list ,post_id, user_id, tags} = taskData;
 
-    const post = {work, recipe, caption, date_created, image_paths, liked_list, comments_list, post_id, user_id, tags};
-    const postRef = db.collection("users_posts").doc(user_id).collection("posts").doc(post_id);
-    postRef.set(post).then(async () => {
-        console.log("\nuploadNewPost - post Added successfully!\n");
+    await db.collection("users").doc(user_id).get()
+    .then(async doc => {
+        // console.log("User collection= " + doc.data())
+        if (doc.exists) {
+            const user = doc.data();
+            await db.collection("users_account_settings").doc(user_id).get()
+            .then(async doc2 => {
+                // console.log("Settings collection= " + doc.data())
+                if (doc.exists) {
+                    const settings = doc2.data();
 
-        updateFollowersFeeds(user_id, postRef);
+                    const post = {
+                        work: work,
+                        recipe: recipe,
+                        caption: caption,
+                        date_created: date_created,
+                        image_paths: image_paths,
+                        liked_list: liked_list,
+                        comments_list: comments_list,
+                        post_id: post_id,
+                        user_id: user_id,
+                        tags: tags,
+                        profile_photo: settings.profile_photo,
+                        full_name: user.full_name,
+                    };
 
-        // Increment posts uploaded by 1 in users_account_settings collection
-        await db.collection("users_account_settings").doc(user_id).update({posts: admin.firestore.FieldValue.increment(1)})
-        .then(() => {
-            console.log('posts count updated successfully');
-        })
-        .catch((error) => {
-            console.error('Error setting value to Firestore document:', error);
-        });
+                    const postRef = db.collection("users_posts").doc(user_id).collection("posts").doc(post_id);
+                    await postRef.set(post).then(async () => {
+                        console.log("\nuploadNewPost - post Added successfully!\n");
+                
+                        updateFollowersFeeds(user_id, postRef);
+                
+                        // Increment posts uploaded by 1 in users_account_settings collection
+                        await db.collection("users_account_settings").doc(user_id).update({posts: admin.firestore.FieldValue.increment(1)})
+                        .then(() => {
+                            console.log('posts count updated successfully');
+                        })
+                        .catch((error) => {
+                            console.error('Error setting value to Firestore document:', error);
+                        });
+                
+                        parentPort.postMessage({ success: true, data: "Success" });
+                    })
+                    .catch((error) => {
+                        console.log("\nuploadNewPost - Error: " + error + "\n");
+                        parentPort.postMessage({ success: false, error: "Error: " + error });
+                    });
+                } else {
+                    console.log('uploadNewPost: Account Document not found!');
+                    parentPort.postMessage({ success: false, error: "Account Document not found!"});
+                }
+            }).catch(error => {
+                console.log('uploadNewPost: Error getting Account document:', error);
+                parentPort.postMessage({ success: false, error: "Error: " + error });
+            });
 
-        parentPort.postMessage({ success: true, data: "Success" });
-    })
-    .catch((error) => {
-        console.log("\nuploadNewPost - Error: " + error + "\n");
+        } else {
+            console.log('uploadNewPost: User Document not found!');
+            parentPort.postMessage({ success: false, error: "User Document not found!"});
+        }
+    }).catch(error => {
+        console.log('uploadNewPost: Error getting User document:', error);
         parentPort.postMessage({ success: false, error: "Error: " + error });
     });
+
 }
 
 
@@ -852,10 +895,12 @@ const getUserFeedPosts = async (taskData) => {
     .then((dataSnapshot) => {
         if (dataSnapshot.exists){
             if (dataSnapshot.data() && dataSnapshot.data().posts) {
-                dataSnapshot.data().posts
-                .forEach((doc) => {
-                    postsRefList.push(doc);
-                });
+                postsRefList =  dataSnapshot.data().posts.slice(0, 50); // Extract the first 50 elements
+
+                // dataSnapshot.data().posts
+                // .forEach((doc) => {
+                //     postsRefList.push(doc);
+                // });
             } 
             else {
                 console.log("getUserFeedPosts - No posts found in the collection1");
@@ -870,42 +915,49 @@ const getUserFeedPosts = async (taskData) => {
 
     });
 
+    // console.log("\n postsRefList = " + JSON.stringify(postsRefList, null, 2));
 
-    // Fatch all the user uploaded posts
-    const collectionRef = db.collection("users_posts").doc(uid).collection("posts");
-    const snapshot = await collectionRef.get();
+    // // Fatch all the user uploaded posts
+    // const collectionRef = db.collection("users_posts").doc(uid).collection("posts");
+    // const snapshot = await collectionRef.get();
     
-    if (!snapshot.empty) {
-        snapshot.forEach((doc) => {
-            if (doc.exists) {
-                const data = doc.data();
-                posts.push(data);
-            }
-        });
-    } else {
-        console.log("No posts found in the collection");
-    }
+    // if (!snapshot.empty) {
+    //     snapshot.forEach((doc) => {
+    //         if (doc.exists) {
+    //             const data = doc.data();
+    //             posts.push(data);
+    //         }
+    //     });
+    // } else {
+    //     console.log("No posts found in the collection");
+    // }
 
     // Fatch all posts using the refrence list (postsRefList)
     fetchDocumentsFromReferences(postsRefList, uid, collectionName)
     .then((documents) => {
-        console.log("\npostsList = " + JSON.stringify(documents, null, 2));
+        // console.log("\n FatchReturn = " + JSON.stringify(documents, null, 2));
 
         // Add followings posts to the posts array
-        posts.concat(documents);
+        // posts.concat(documents);
+        documents.forEach((doc) => {
+            posts.push(doc);
+        });
+
+        // console.log("\n posts = " + JSON.stringify(posts, null, 2));
 
         // console.log("\n\nBefore:\n\n" + JSON.stringify(posts, null , 2));
 
         // Sort the posts according to their time stamp
         posts.sort((a, b) => {
-            console.log("\n\na = " + JSON.stringify(a, null , 2) + "\n\n");
+            // console.log("\n\na = " + JSON.stringify(a, null , 2) + "\n\n");
             
             const compare = Date.parse(a.date_created.trim()) - Date.parse(b.date_created.trim())
-            console.log("\n\ncompare = " + Date.parse(a.date_created) + " - " + Date.parse(b.date_created) + "== " + compare + "\n\n");
+            // console.log("\n\ncompare = " + Date.parse(a.date_created) + " - " + Date.parse(b.date_created) + "== " + compare + "\n\n");
 
             return compare});
 
         // console.log("\n\nAfter:\n\n" + JSON.stringify(posts, null , 2));
+
 
         // Create the response
         const response = {
@@ -952,50 +1004,59 @@ const getProfileFeedPosts = async (taskData) => {
       console.log("No posts found in the collection");
     }
 
-    console.log("\nposts = " + JSON.stringify(posts, null, 2));
+    // console.log("\nposts = " + JSON.stringify(posts, null, 2));
+    const data = {
+        success: true,
+        posts: posts
+      };
+
+      const jsonData = JSON.stringify(data);
+      console.log(jsonData);
+
+      parentPort.postMessage({success: true, data: jsonData});
 
 
-    await db.collection("users").doc(uid).get()
-    .then(async doc => {
-        // console.log("User collection= " + doc.data())
-        if (doc.exists) {
-            const user = doc.data();
-            await db.collection("users_account_settings").doc(uid).get()
-            .then(doc2 => {
-                // console.log("Settings collection= " + doc.data())
-                if (doc.exists) {
-                    const settings = doc2.data();
+    // await db.collection("users").doc(uid).get()
+    // .then(async doc => {
+    //     // console.log("User collection= " + doc.data())
+    //     if (doc.exists) {
+    //         const user = doc.data();
+    //         await db.collection("users_account_settings").doc(uid).get()
+    //         .then(doc2 => {
+    //             // console.log("Settings collection= " + doc.data())
+    //             if (doc.exists) {
+    //                 const settings = doc2.data();
 
-                    const data = {
-                        success: true,
-                        user: user,
-                        account: settings,
-                        posts: posts
-                      };
-                      const jsonData = JSON.stringify(data);
-                      console.log(jsonData);
+    //                 const data = {
+    //                     success: true,
+    //                     user: user,
+    //                     account: settings,
+    //                     posts: posts
+    //                   };
+    //                   const jsonData = JSON.stringify(data);
+    //                   console.log(jsonData);
 
-                      parentPort.postMessage({
-                        success: true,
-                        data: jsonData
-                      });
-                } else {
-                    console.log('getProfileFeedPosts: Account Document not found!');
-                    parentPort.postMessage({ success: false, error: "Account Document not found!"});
-                }
-            }).catch(error => {
-                console.log('getProfileFeedPosts: Error getting Account document:', error);
-                parentPort.postMessage({ success: false, error: "Error: " + error });
-            });
+    //                   parentPort.postMessage({
+    //                     success: true,
+    //                     data: jsonData
+    //                   });
+    //             } else {
+    //                 console.log('getProfileFeedPosts: Account Document not found!');
+    //                 parentPort.postMessage({ success: false, error: "Account Document not found!"});
+    //             }
+    //         }).catch(error => {
+    //             console.log('getProfileFeedPosts: Error getting Account document:', error);
+    //             parentPort.postMessage({ success: false, error: "Error: " + error });
+    //         });
 
-        } else {
-            console.log('getProfileFeedPosts: User Document not found!');
-            parentPort.postMessage({ success: false, error: "User Document not found!"});
-        }
-    }).catch(error => {
-        console.log('getProfileFeedPosts: Error getting User document:', error);
-        parentPort.postMessage({ success: false, error: "Error: " + error });
-    });
+    //     } else {
+    //         console.log('getProfileFeedPosts: User Document not found!');
+    //         parentPort.postMessage({ success: false, error: "User Document not found!"});
+    //     }
+    // }).catch(error => {
+    //     console.log('getProfileFeedPosts: Error getting User document:', error);
+    //     parentPort.postMessage({ success: false, error: "Error: " + error });
+    // });
 
 }    
     
@@ -1652,7 +1713,7 @@ async function fetchDocumentsFromReferences(referenceList, uid, collectionName) 
 
         // Clear the null object collected from collection
         const filteredDocuments = documents.filter((document) => document !== null);
-        console.log("\filteredDocuments = " + JSON.stringify(filteredDocuments, null, 2));
+        // console.log("\filteredDocuments = " + JSON.stringify(filteredDocuments, null, 2));
 
         return filteredDocuments;
     } catch (error) {
