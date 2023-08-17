@@ -36,7 +36,7 @@ You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03U
     Nginx full tutorial: https://www.youtube.com/watch?v=5PrT5uKszQo
 10. How to use nginx as a load balancer:
     https://www.youtube.com/watch?v=2X4ZO5tO7Co&list=PLaiZP3KJsJOoFP4JwV_GlRfjmz-w54d1K&index=4
-    In general: 
+    In general:
         * Check if nginx.conf is ok: nginx -t
         * Start nginx: start nginx
         * Reload nginx: nginx -s reload

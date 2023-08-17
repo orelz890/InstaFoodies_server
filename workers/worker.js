@@ -57,8 +57,6 @@ const signup = async (taskData) => {
             description: "none",
             profile_photo: "none",
             isBusiness: false,
-            followers: 0,
-            following: 0,
             posts: 0,
             website: "none",
             following_ids: [],
@@ -210,8 +208,6 @@ const patchUserAccountSettings = async (taskData) => {
                 description: description || data.description,
                 profile_photo: data.profile_photo,
                 isBusiness: data.isBusiness,
-                followers: data.followers,
-                following: data.following,
                 posts: data.posts,
                 website: website || data.website,
                 following_ids: data.following_ids,
@@ -1581,13 +1577,13 @@ const followUnfollow = async (taskData) => {
     if (followOrNot){
         await userRef.update({ 
             following_ids: admin.firestore.FieldValue.arrayUnion(friendUid),
-            following: admin.firestore.FieldValue.increment(1)
+            // following: admin.firestore.FieldValue.increment(1)
         })
         .then(async () => {
             // Add new following & followers
             await friendRef.update({ 
                 followers_ids: admin.firestore.FieldValue.arrayUnion(uid),
-                followers: admin.firestore.FieldValue.increment(1)
+                // followers: admin.firestore.FieldValue.increment(1)
             })
             .then(() => {
                 console.log("followUnfollow - If - All done successfully updated user and friend users_account_settings!");
@@ -1608,13 +1604,13 @@ const followUnfollow = async (taskData) => {
     {
         await userRef.update({ 
             following_ids: admin.firestore.FieldValue.arrayRemove(friendUid),
-            following: admin.firestore.FieldValue.increment(-1)
+            // following: admin.firestore.FieldValue.increment(-1)
         })
         .then(async () => {
             // Add new following & followers
             await friendRef.update({ 
                 followers_ids: admin.firestore.FieldValue.arrayRemove(uid),
-                followers: admin.firestore.FieldValue.increment(-1)
+                // followers: admin.firestore.FieldValue.increment(-1)
             })
             .then(() => {
                 console.log("followUnfollow - Else - All done successfully updated user and friend users_account_settings!");
