@@ -1,39 +1,46 @@
-# 🍔 Insta Foodies Server
+<div align="center">
+  <img src="pics/server.jpg" alt="Server Pic" width="1000" height="250"/>
+  <h1>🔌 Backend Server Mastery: Empowering InstaFoodies' Heartbeat 💻</h1>
+  <p>Embark on a journey into the robust backend server architecture of InstaFoodies, where culinary passion meets technological excellence!</p>
+</div>
+
+---
+# 👨‍💻 Instafoodies Server 
 
 Welcome to the Insta Foodies Server repository! This server-side component is an integral part of the Insta Foodies social app, offering food enthusiasts a unique and delightful experience. Powered by Node.js with load balancing and multi-threading capabilities, this server ensures high performance and efficient handling of user traffic. The server integrates seamlessly with the Insta Foodies mobile application, utilizing the Model-View-ViewModel (MVVM) architecture to maintain a well-structured codebase and deliver a smooth user interface.
 
 ## 📚 Table of Contents
-- [🏛️ System Architecture](#----system-architecture)
-  * [🏗️ Architectural Design](#----architectural-design)
-  * [📦 Decomposition Description](#---decomposition-description)
-  * [🎨 Design Rationale](#---design-rationale)
-- [📊 Data Design](#---data-design)
-  * [📋 Data Description](#---data-description)
-  * [📕 Data Dictionary](#---data-dictionary)
-- [🛠️ Component Design](#----component-design)
-  * [🔒 User Authentication and Registration](#---user-authentication-and-registration)
-  * [📰 Main Feed and Navigation](#---main-feed-and-navigation)
-  * [👤 User Profile and Settings](#---user-profile-and-settings)
-  * [📸 Sharing with Friends, Post Creation and Editing](#---sharing-with-friends--post-creation-and-editing)
-  * [🤖 AI Models for Food & Spam Detection](#---ai-models-for-food---spam-detection)
-  * [📣 Notify User by Text](#---notify-user-by-text)
-  * [🔍 Search Functionality](#---search-functionality)
-  * [💰 Payment Handler](#---payment-handler)
-  * [💬 Chat and Messaging (WhatsApp-like)](#---chat-and-messaging--whatsapp-like-)
-  * [📚 Recipe Web Scraping and Integration](#---recipe-web-scraping-and-integration)
-  * [🚀 Multi-Threaded Server and Load Balancing](#---multi-threaded-server-and-load-balancing)
-- [🚀 Getting Started](#---getting-started)
-  * [⚙️ Prerequisites](#---prerequisites)
-  * [🛠️ Installation](#----installation)
-  * [⚙️ Configuration](#---configuration)
-  * [▶️ Usage](#---usage)
-- [🤝 Contributing](#---contributing)
-- [📄 License](#---license)
+- [System Architecture](#-system-architecture)
+  - [Architectural Design](#-architectural-design)
+  - [Decomposition Description](#-decomposition-description)
+  - [Design Rationale](#-design-rationale)
+- [Data Design](#-data-design)
+  - [Data Description](#-data-description)
+  - [Data Dictionary](#-data-dictionary)
+- [Component Design](#-component-design)
+  - [User Authentication and Registration](#-user-authentication-and-registration)
+  - [Main Feed and Navigation](#-main-feed-and-navigation)
+  - [User Profile and Settings](#-user-profile-and-settings)
+  - [Sharing with Friends, Post Creation and Editing](#-sharing-with-friends-post-creation-and-editing)
+  - [AI Models for Food & Spam Detection](#-ai-models-for-food--spam-detection)
+  - [Notify User by Text](#-notify-user-by-text)
+  - [Search Functionality](#-search-functionality)
+  - [Payment Handler](#-payment-handler)
+  - [Chat and Messaging (WhatsApp-like)](#-chat-and-messaging-whatsapp-like)
+  - [Recipe Web Scraping and Integration](#-recipe-web-scraping-and-integration)
+  - [Multi-Threaded Server and Load Balancing](#-multi-threaded-server-and-load-balancing)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#-prerequisites)
+  - [Installation](#-installation)
+  - [Configuration](#-configuration)
+  - [Usage](#-usage)
+- [Contributing](#-contributing)
+- [License](#-license)
 
   
-## 🏛️ System Architecture
+## 💻 System Architecture
 
-### 🏗️ Architectural Design
+### 👨‍💻 Architectural Design
 
 The Insta Foodies Server follows the Model-View-ViewModel (MVVM) architectural pattern, promoting the separation of concerns and ease of codebase maintenance. This design consists of three core components:
 
@@ -89,7 +96,7 @@ The Insta Foodies Server utilizes the following tables or collections to store d
 
 
 
-## 🛠️ Component Design
+## 🎛 Component Design
 
 The Insta Foodies Server comprises several components, each responsible for specific functionalities:
 
@@ -174,26 +181,26 @@ The Insta Foodies Server comprises several components, each responsible for spec
 
 To set up and run the Insta Foodies Server, follow the steps below:
 
-### ⚙️ Prerequisites
+### ⚙ Prerequisites
 
-- Node.js (version x.x.x)
-- MongoDB or Firebase (as chosen for the database)
-- NGINX for load balancing (optional)
+- Node.js (version 18.5.0)
+- Firebase 
+- NGINX for load balancing 
 
-### 🛠️ Installation
+### 🛠 Installation
 
 1. Clone this repository to your local machine.
 2. Navigate to the project directory using the terminal.
 3. Install dependencies using `npm install`.
 
-### ⚙️ Configuration
+### ⚙ Configuration
 
 1. Set up your chosen database (MongoDB or Firebase) and obtain the necessary credentials.
 2. Configure the database connection in the server code.
 3. Configure the AI model integration for food and spam detection.
 4. If using NGINX for load balancing, configure the NGINX settings accordingly.
 
-### ▶️ Usage
+### ▶ Usage
 
 Once the server is set up and running, it seamlessly integrates with the Insta Foodies mobile application. Users can enjoy the unique and delightful experience of connecting with fellow food enthusiasts, exploring recipes, sharing content, and engaging in real-time chat.
 
@@ -206,3 +213,4 @@ Contributions to the Insta Foodies Server are welcome! Please follow the guideli
 This project is licensed under the MIT License. Feel free to use and modify the code as needed.
 
 Thank you for choosing the Insta Foodies Server for your food enthusiasts' social app. We're excited to see the delightful experiences you create for food lovers around the world! If you have any questions or need further assistance, please don't hesitate to reach out to our support team. Happy coding! 🍕
+
