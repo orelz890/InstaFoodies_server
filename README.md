@@ -34,7 +34,6 @@ Welcome to the Insta Foodies Server repository! This server-side component is an
   - [Installation](#-installation)
   - [Configuration](#-configuration)
   - [Usage](#-usage)
-- [Contributing](#-contributing)
 - [License](#-license)
 
   
@@ -179,34 +178,137 @@ The Insta Foodies Server comprises several components, each responsible for spec
 
 ## 🚀 Getting Started
 
-To set up and run the Insta Foodies Server, follow the steps below:
+You can follow this step-by-step guide or watch the video tutorial on [YouTube](https://www.youtube.com/watch?v=8Se_F7c03UM).
 
 ### ⚙ Prerequisites
 
-- Node.js (version 18.5.0)
-- Firebase 
-- NGINX for load balancing 
+- Install npm:
+    ```sh
+    npm install -g npm
+    ```
+
+- Install Node.js (version 18.5.0) on your computer:
+    - Windows: [Download Node.js](https://nodejs.org/en/)
+    - Ubuntu:
+      ```sh
+      sudo npm cache clean -f
+      sudo npm install -g n
+      sudo n latest
+      ```
+
+- Open a folder for the server.
 
 ### 🛠 Installation
 
-1. Clone this repository to your local machine.
-2. Navigate to the project directory using the terminal.
-3. Install dependencies using `npm install`.
+1. Clone the project to the folder.
+
+2. Navigate to the project folder in the terminal.
+
+3. Initialize the project:
+    ```sh
+    npm init
+    ```
+
+4. Install dependencies:
+    ```sh
+    npm install express firebase-auth firebase firebase-admin firebase-tools nodemon morgan apicache
+    ```
+
+    - To keep the server running and automatically update with changes, add the following to your `package.json`:
+      ```json
+      "scripts": {
+          "start": "nodemon server.js",
+          ...
+      }
+      ```
+
+5. Generate a new private key for Firebase:
+   - Go to Project settings -> Service accounts.
+   - Generate a new private key.
+   - Open the `key.js` file and paste the generated key.
+
+6. Install Nginx (web server similar to Apache):
+    - Ubuntu: 
+      ```sh
+      sudo apt install nginx
+      ```
+    - Windows: Watch the [tutorial](https://www.youtube.com/watch?v=3-3o3Yz4GvY).
+    - Full Nginx tutorial: [YouTube](https://www.youtube.com/watch?v=5PrT5uKszQo)
+
+7. Using Nginx as a load balancer:
+    - Watch the [tutorial](https://www.youtube.com/watch?v=2X4ZO5tO7Co&list=PLaiZP3KJsJOoFP4JwV_GlRfjmz-w54d1K&index=4)
+    - General commands:
+        - Check Nginx configuration: `nginx -t`
+        - Start Nginx: `start nginx`
+        - Reload Nginx: `nginx -s reload`
+
+8. Install OpenSSL on Windows: [Tutorial](https://www.youtube.com/watch?v=cBa87N_BZ4s)
 
 ### ⚙ Configuration
 
-1. Set up your chosen database (MongoDB or Firebase) and obtain the necessary credentials.
-2. Configure the database connection in the server code.
-3. Configure the AI model integration for food and spam detection.
-4. If using NGINX for load balancing, configure the NGINX settings accordingly.
+- To run the server with Nodemon:
+    ```sh
+    npm start
+    ```
+
+- To run the server without Nodemon:
+    ```sh
+    node .\server.js
+    ```
 
 ### ▶ Usage
 
+### Running Without PM2
+
+- For more details, watch this [video](https://www.youtube.com/watch?v=oykl1Ih9pMg&list=PLatLJHenaEliXO6AVHwu_5nejsebpNFfB&index=5)
+
+1. Install PM2 (process manager):
+    ```sh
+    npm install -g pm2
+    ```
+
+2. Start the server with PM2:
+    ```sh
+    pm2 start server.js
+    ```
+
+3. Additional commands:
+    ```sh
+    pm2 status
+    pm2 restart server.js
+    pm2 stop server.js
+    pm2 logs
+    pm2 flush
+    ```
+
+4. To run multiple servers on different ports:
+    - Install cross-env:
+      ```sh
+      npm install --save-dev cross-env
+      ```
+    - Start servers with different ports:
+      ```sh
+      npx cross-env PORT=3000 pm2 start --name server1 server.js
+      ```
+
+5. Save PM2 configuration:
+    ```sh
+    pm2 save
+    ```
+
+This script: `powershell -ExecutionPolicy Bypass` allows running scripts without permanently changing the system's execution policy.
+
+## Useful Sources
+
+- [Building the Android Side (Client) Tutorial](https://www.youtube.com/watch?v=ycja50TzjoU)
+- [Retrofit Documentation](https://square.github.io/retrofit/)
+- [Organizing Files in Node.js](https://www.youtube.com/watch?v=T8SZv6h2WbY)
+- [CRUD Methods Tutorial](https://www.youtube.com/playlist?list=PLrnPJCHvNZuCbuD3xpfKzQWOj3AXybSaM)
+- [Retrofit Tutorials](https://futurestud.io/tutorials/retrofit-2-how-to-delete-objects-on-the-server)
+- [HTTP Status Codes](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+- [Guide on Running Multiple Servers with PM2](https://www.youtube.com/watch?v=14zY-u9EBCU)
+
 Once the server is set up and running, it seamlessly integrates with the Insta Foodies mobile application. Users can enjoy the unique and delightful experience of connecting with fellow food enthusiasts, exploring recipes, sharing content, and engaging in real-time chat.
-
-## 🤝 Contributing
-
-Contributions to the Insta Foodies Server are welcome! Please follow the guidelines outlined in the CONTRIBUTING.md file.
 
 ## 📄 License
 
