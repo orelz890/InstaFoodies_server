@@ -1574,7 +1574,7 @@ const followUnfollow = async (taskData) => {
     console.log("\n\nfollowOrNot = " + followOrNot + "\n\n");
 
     // Update the user followings details & friends followers details.
-    if (followOrNot){
+    if (followOrNot === "true"){
         await userRef.update({ 
             following_ids: admin.firestore.FieldValue.arrayUnion(friendUid),
             // following: admin.firestore.FieldValue.increment(1)
