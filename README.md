@@ -1,101 +1,216 @@
-# Node.js server for our InstaFoodies app
+<div align="center">
+  <img src="pics/server.jpg" alt="Server Pic" width="1000" height="250"/>
+  <h1>🔌 Backend Server Mastery: Empowering InstaFoodies' Heartbeat 💻</h1>
+  <p>Embark on a journey into the robust backend server architecture of InstaFoodies, where culinary passion meets technological excellence!</p>
+</div>
 
-<!-- Working on linux is prefered -->
-### How to run:
+---
+# 👨‍💻 Instafoodies Server 
 
-***Preparation:***
+Welcome to the Insta Foodies Server repository! This server-side component is an integral part of the Insta Foodies social app, offering food enthusiasts a unique and delightful experience. Powered by Node.js with load balancing and multi-threading capabilities, this server ensures high performance and efficient handling of user traffic. The server integrates seamlessly with the Insta Foodies mobile application, utilizing the Model-View-ViewModel (MVVM) architecture to maintain a well-structured codebase and deliver a smooth user interface.
 
+## 📚 Table of Contents
+- [System Architecture](#-system-architecture)
+  - [Architectural Design](#-architectural-design)
+  - [Decomposition Description](#-decomposition-description)
+  - [Design Rationale](#-design-rationale)
+- [Data Design](#-data-design)
+  - [Data Description](#-data-description)
+  - [Data Dictionary](#-data-dictionary)
+- [Component Design](#-component-design)
+  - [User Authentication and Registration](#-user-authentication-and-registration)
+  - [Main Feed and Navigation](#-main-feed-and-navigation)
+  - [User Profile and Settings](#-user-profile-and-settings)
+  - [Sharing with Friends, Post Creation and Editing](#-sharing-with-friends-post-creation-and-editing)
+  - [AI Models for Food & Spam Detection](#-ai-models-for-food--spam-detection)
+  - [Notify User by Text](#-notify-user-by-text)
+  - [Search Functionality](#-search-functionality)
+  - [Payment Handler](#-payment-handler)
+  - [Chat and Messaging (WhatsApp-like)](#-chat-and-messaging-whatsapp-like)
+  - [Recipe Web Scraping and Integration](#-recipe-web-scraping-and-integration)
+  - [Multi-Threaded Server and Load Balancing](#-multi-threaded-server-and-load-balancing)
+- [Getting Started](#-getting-started)
+  - [Prerequisites](#-prerequisites)
+  - [Installation](#-installation)
+  - [Configuration](#-configuration)
+  - [Usage](#-usage)
+- [Contributing](#-contributing)
+- [License](#-license)
 
-You can find step by step guide here: https://www.youtube.com/watch?v=8Se_F7c03UM
-0. install npm: npm install -g npm
-1. Install node.js on your computer:
-    windows: https://nodejs.org/en/
-    ubuntu: sudo npm cache clean -f
-            sudo npm install -g n
-            sudo n latest
-2. Open a folder for the server
-3. Clone the project there
-4. Enter the folder in the terminal
-5. Copy this to the terminal: npm init
-6. Press enter untill its done
-7. Copy this to the terminal: npm install express firebase-auth firebase firebase-admin firebase-tools nodemon morgan apicache
-   (nodemon - keeps the server running. It takes the changes we make to the server so we wont have to stop. In order for this to work add this:
-    "scripts": {
-        "start": "nodemon server.js",
-        ...
-    }
-    in the package.json file)
- 
-8. Generate new private key that tells firebase that we are a reliable src
-   (How to generate in firebase: 
-   Project settings -> Service accounts -> Generate new private key 
-                    -> open key.js file -> paste the key generated).
-9. To install nginx (web server similar to apache):
-    ubuntu: sudo apt install nginx
-    windows: https://www.youtube.com/watch?v=3-3o3Yz4GvY
-    Nginx full tutorial: https://www.youtube.com/watch?v=5PrT5uKszQo
-10. How to use nginx as a load balancer:
-    https://www.youtube.com/watch?v=2X4ZO5tO7Co&list=PLaiZP3KJsJOoFP4JwV_GlRfjmz-w54d1K&index=4
-    In general:
-        * Check if nginx.conf is ok: nginx -t
-        * Start nginx: start nginx
-        * Reload nginx: nginx -s reload
-11. install openssl on windows: https://www.youtube.com/watch?v=cBa87N_BZ4s
+  
+## 💻 System Architecture
 
+### 👨‍💻 Architectural Design
 
-***Run:***
+The Insta Foodies Server follows the Model-View-ViewModel (MVVM) architectural pattern, promoting the separation of concerns and ease of codebase maintenance. This design consists of three core components:
 
-***With nodemon**
-1. Copy this to the terminal: npm start
+- Model: Handles communication with the database and data-related logic.
+- View: Interfaces with the Android UI, managing layouts and user interface elements.
+- View Model: Prepares data from the Model for the UI and contains UI-related logic.
 
-***Without nodemon**
-1. Copy this to the terminal: node .\server.js
+### 📦 Decomposition Description
 
-***Without pm2**
-* Link for more details: https://www.youtube.com/watch?v=oykl1Ih9pMg&list=PLatLJHenaEliXO6AVHwu_5nejsebpNFfB&index=5
-* Use pm2 (process manager) if you want to run the server in the background and ensure that it automatically restarts in case of any errors or crashes.
-1. First, copy this to your terminal: npm install -g pm2
-2. Copy this to the terminal: pm2 start server.js
-3. More command u should know:
-     pm2 status - will show u all the apps that are running
-     pm2 restart server.js
-     pm2 stop server.js
-     pm2 logs - will show all the console.logs
-     pm2 flush - clears the logs
-4. This script: powershell -ExecutionPolicy Bypass
-5. In order to run multiple servers you need to listen in diffrent ports:
-    First, install: 
-        npm install --save-dev cross-env
-    Then, enter this line: 
-        npx cross-env PORT=3000 pm2 start --name server1 server.js
-        with diffrent ports for each server ypu open.
-guide: https://www.youtube.com/watch?v=14zY-u9EBCU
-6. Enter: pm2 save
+The server is modularized into several distinct modules, each responsible for specific functionalities:
 
+1. **User Authentication and Registration:** Manages user registration, authentication, and secure processes, including verification emails.
+2. **Post Creation and Editing:** Handles post creation, editing, and management, enabling image uploads, descriptions, and structured recipe data.
+3. **Feed Display and Navigation:** Displays user feeds with chronological posts and allows interactions such as likes, comments, and shares.
+4. **User Profile and Settings:** Manages user profiles, settings, and customization.
+5. **Search Functionality:** Implements user search queries, organizes search results, and provides auto-complete suggestions.
+6. **Notifications:** Sends notifications for interactions related to user activities and preferences.
+7. **Chat Messaging:** Enables real-time chat, individual and group messaging, multimedia sharing, and message history.
+8. **Content Recognition and Reporting:** Utilizes AI for object detection to identify recognizable food content in posts, managing reporting and moderation.
+9. **Recipe Web Scraping and Integration:** Fetches external recipes, integrates them into the app's database, and displays them seamlessly.
+10. **Multi-Threaded Server and Load Balancing:** Manages the application's logic using a multi-threaded server architecture and load balancing through NGINX.
 
+### 🎨 Design Rationale
 
- will allow you to run scripts without changing the system's execution policy permanently if needed.
+The Model-View-ViewModel (MVVM) architectural pattern was selected for its ability to separate concerns and ensure a well-organized codebase. Decomposing the application into modules enhances code readability, maintainability, and scalability. Each module serves a specific purpose, fostering collaboration and allowing new features to be seamlessly integrated.
 
+## 📊 Data Design
 
-## Useful sources
+### 📋 Data Description
 
-### Note: For building the android side (client) you can follow the first half of this video:
+The server utilizes either Firebase or SQLite as the database to store various types of data relevant to the Insta Foodies app:
 
-https://www.youtube.com/watch?v=ycja50TzjoU
+- User Information: Stores essential user details, such as usernames, emails, and online/offline status.
+- User Account Information: Manages user-specific account data, including followers, followings, cart items, and business/regular distinctions.
+- Post Information: Stores comprehensive post data, encompassing captions, ingredients, instructions, images, and timestamps.
+- User Feed: Stores references to posts from followed users, contributing to the user's personalized feed.
+- User Liked Posts: Tracks references to posts that a user has liked, enhancing the user's engagement with content.
+- Reported Posts: Manages references to posts flagged by the content recognition module, facilitating content moderation.
+- Utils: Provides a collection for maintaining data such as ingredient options, promoting consistency.
+
+### 📕 Data Dictionary
+
+The Insta Foodies Server utilizes the following tables or collections to store data:
 
 
-### Note: In the android side- Retrofit turns your HTTP API into a Java interface.
+1. User information - A table or collection that stores the relationship between users.
+2. User Account information – A table or collection storing account information.
+3. Post information - A table or collection that stores posts information.
+4. User feed - A table or collection storing references to the user's followings posts.
+5. User-liked posts - A table or collection storing references to posts he/she liked.
+6. Reported posts – - A table or collection storing references to MLKIT reported posts.
+7. Utils – A table or collection storing Ingredients options list.
 
-https://square.github.io/retrofit/
 
-### Note: learned how to organize the files correctly in node.js:
 
-https://www.youtube.com/watch?v=T8SZv6h2WbY
+## 🎛 Component Design
 
-### Understanding how CRUD methods work with node.js + retrofit2 implementation:
+The Insta Foodies Server comprises several components, each responsible for specific functionalities:
 
-https://www.youtube.com/playlist?list=PLrnPJCHvNZuCbuD3xpfKzQWOj3AXybSaM
+### 🔒 User Authentication and Registration
 
-***Retrofit tutorials:***  https://futurestud.io/tutorials/retrofit-2-how-to-delete-objects-on-the-server
+**Component:** Login
+**Responsibilities:** Manages user registration, login, and authentication.
+**Subcomponents:** Login Activity, Layout Login Activity, Register Activity, Layout Register Activity.
+**Functionalities:** Register, Login.
 
-***HTTP status codes:***  https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+### 📰 Main Feed and Navigation
+
+**Component:** Home
+**Responsibilities:** Displays the main feed, posts, and comments, and provides user navigation.
+**Subcomponents:** Home Activity, Layout Home Activity, Post Adapter, Navigation Menu.
+**Functionalities:** Feed view, Post view, like a Post, comment on a post, add post to cart, share post, see more/see less, navigations to Home, Search user, Add Post, Notifications, Profile Page, Chat.
+
+### 👤 User Profile and Settings
+
+**Component:** Profile
+**Responsibilities:** Manages user profiles, settings, customization, and related data.
+**Subcomponents:** Profile Activity, Layout Profile Activity, Edit Profile, Layout Edit Profile.
+**Functionalities:** App bar options, profile photo view, post details, user posts grid, cart grid, liked posts grid, navigations to Home, Search user, Add Post, Notifications, Profile Page.
+
+### 📸 Sharing with Friends, Post Creation and Editing
+
+**Component:** Share
+**Responsibilities:** Supports post creation, editing, and sharing with followers.
+**Subcomponents:** Share Activity, Image Adapter, Create Post Activity, Layout Share Activity, Layout Create Post Activity.
+**Functionalities:** Create post with photos, description, recipe details, navigations to Home, Search user, Add Post, Notifications, Profile Page.
+
+### 🤖 AI Models for Food & Spam Detection
+
+**Component:** MLKIT
+**Responsibilities:** Utilizes AI for food and spam detection, reports illegal post uploads.
+**Subcomponents:** Object Detection, Spam Text Detection.
+**Functionalities:** Runs AI model on post uploads for content recognition and moderation.
+
+### 📣 Notify User by Text
+
+**Component:** Notifications
+**Responsibilities:** Sends notifications to users based on events and preferences.
+**Subcomponents:** Reminder, Reminder Broadcast.
+**Functionalities:** Sends notifications at specified intervals, reminding users of events.
+
+### 🔍 Search Functionality
+
+**Component:** Search
+**Responsibilities:** Implements user search functionality and auto-completion.
+**Subcomponents:** Search Activity, Layout Search Activity.
+**Functionalities:** Auto-complete users search bar, navigations to Home, Search user, Add Post, Notifications, Profile Page.
+
+### 💰 Payment Handler
+
+**Component:** Payment
+**Responsibilities:** Manages payments to business users for accessing special content.
+**Subcomponents:** PayPal Activity.
+**Functionalities:** Facilitates payment transactions to business users.
+
+### 💬 Chat and Messaging (WhatsApp-like)
+
+**Component:** Chat
+**Responsibilities:** Enables real-time chat, messaging, and interactions between users.
+**Subcomponents:** Chat Activity, Chat Profile Activity, Chat Find Friends Activity, Main Chat Activity, Messages Adapter, Request to Chat Activity.
+**Functionalities:** Chat request, accept/reject requests, individual/group chat, multimedia sharing, message history, navigations to Home, Search user, Add Post, Notifications, Profile Page.
+
+### 📚 Recipe Web Scraping and Integration
+
+**Component:** Scraping
+**Responsibilities:** Fetches and integrates external recipes into the app's database.
+**Subcomponents:** Scraping file.
+**Functionalities:** Retrieves recipes from external sources and integrates them seamlessly.
+
+### 🚀 Multi-Threaded Server and Load Balancing
+
+**Component:** Insta-foodies Server
+**Responsibilities:** Manages multi-threaded server architecture and load balancing.
+**Subcomponents:** Server, Workers Handler, Worker, Entry Controller.
+**Functionalities:** Efficiently handles incoming requests, balances workloads, and ensures optimal performance.
+
+## 🚀 Getting Started
+
+To set up and run the Insta Foodies Server, follow the steps below:
+
+### ⚙ Prerequisites
+
+- Node.js (version 18.5.0)
+- Firebase 
+- NGINX for load balancing 
+
+### 🛠 Installation
+
+1. Clone this repository to your local machine.
+2. Navigate to the project directory using the terminal.
+3. Install dependencies using `npm install`.
+
+### ⚙ Configuration
+
+1. Set up your chosen database (MongoDB or Firebase) and obtain the necessary credentials.
+2. Configure the database connection in the server code.
+3. Configure the AI model integration for food and spam detection.
+4. If using NGINX for load balancing, configure the NGINX settings accordingly.
+
+### ▶ Usage
+
+Once the server is set up and running, it seamlessly integrates with the Insta Foodies mobile application. Users can enjoy the unique and delightful experience of connecting with fellow food enthusiasts, exploring recipes, sharing content, and engaging in real-time chat.
+
+## 🤝 Contributing
+
+Contributions to the Insta Foodies Server are welcome! Please follow the guidelines outlined in the CONTRIBUTING.md file.
+
+## 📄 License
+
+This project is licensed under the MIT License. Feel free to use and modify the code as needed.
+
+Thank you for choosing the Insta Foodies Server for your food enthusiasts' social app. We're excited to see the delightful experiences you create for food lovers around the world! If you have any questions or need further assistance, please don't hesitate to reach out to our support team. Happy coding! 🍕
+
