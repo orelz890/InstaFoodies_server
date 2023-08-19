@@ -29,6 +29,7 @@ const GET_LIKED_OR_CART_POSTS = 24;
 const DELETE_USER_POST = 25;
 const FOLLOW_OR_UNFOLLOW = 26;
 const REPORT_ILLEGAL_POST = 27;
+const GET_USER_AND_FEED = 28;
 
 
 
@@ -134,6 +135,9 @@ class user_worker {
                 break;
             case REPORT_ILLEGAL_POST:
                 this.worker.postMessage({ type: 'reportIllegalPost', data: taskData });
+                break;
+            case GET_USER_AND_FEED:
+                this.worker.postMessage({ type: 'getUserAndHisFeedPosts', data: taskData });
                 break;
             default:
                 break;

@@ -36,7 +36,7 @@ function deleteUserAuth(uid){
 
 const signup = async (taskData) => {
 
-    const { email, username, full_name ,phone_number, id, following_ids, state, date, time} = taskData;
+    const { email, username, full_name ,phone_number, id, following_ids, state, date, time, paypalClientId} = taskData;
     const newUserJson = {
         user_id: id,
         username: username,
@@ -60,7 +60,8 @@ const signup = async (taskData) => {
             posts: 0,
             website: "none",
             following_ids: [],
-            followers_ids: []
+            followers_ids: [],
+            paypal_client_id: paypalClientId || "",
         };
     
         await db.collection(ref2).doc(id).set(newUserAccountSettingsJson);
@@ -195,7 +196,7 @@ const patchUser = async (taskData) => {
 }
 
 const patchUserAccountSettings = async (taskData) => {
-    const { uid, description, website} = taskData;
+    const { uid, description, website, paypalClientId} = taskData;
 
     // console.log("in patchUserAccountSettings: " , email, username);
     await db.collection("users_account_settings").doc(uid).get()
@@ -211,7 +212,8 @@ const patchUserAccountSettings = async (taskData) => {
                 posts: data.posts,
                 website: website || data.website,
                 following_ids: data.following_ids,
-                followers_ids: data.followers_ids
+                followers_ids: data.followers_ids,
+                paypal_client_id: data.paypalClientId || paypalClientId || "",
             };
 
             await db.collection("users_account_settings").doc(uid).set(newUserJson, { merge: true })
@@ -970,6 +972,139 @@ const getUserFeedPosts = async (taskData) => {
     });
 
     console.log(" ======================== out of getUserFeedPosts ==========================\n")
+
+}
+
+
+
+const getUserAndHisFeedPosts = async (taskData) => {
+    console.log(" ======================== in of getUserAndHisFeedPosts ==========================\n")
+
+    const { uid } = taskData;
+
+    let collectionName = "users_feeds";
+
+    // Fatch all user feed posts refrences
+    let postsRefList = [];
+    let posts = [];
+    console.log("uid - " + uid);
+
+    // Get User info
+    await db.collection("users").doc(uid).get()
+    .then(async doc => {
+        // console.log("User collection= " + doc.data())
+        if (doc.exists) {
+            const user = doc.data();
+
+            // Get User Account settings
+            await db.collection("users_account_settings").doc(uid).get()
+            .then(async doc2 => {
+                if (doc.exists) {
+                    const settings = doc2.data();
+                    
+                    // Fatch posts of people you follow
+                    await db.collection(collectionName).doc(uid).get()
+                    .then((dataSnapshot) => {
+                        if (dataSnapshot.exists){
+                            if (dataSnapshot.data() && dataSnapshot.data().posts) {
+                                postsRefList =  dataSnapshot.data().posts.slice(0, 50); // Extract the first 50 elements
+                            } 
+                            else {
+                                console.log("getUserAndHisFeedPosts - No posts found in the collection1");
+                            }
+                        }
+                        else {
+                            console.log("getUserAndHisFeedPosts - No posts found in the collection2");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error :', error);
+
+                    });
+
+                    // console.log("\n postsRefList = " + JSON.stringify(postsRefList, null, 2));
+
+                    // // Fatch all the user uploaded posts
+                    // const collectionRef = db.collection("users_posts").doc(uid).collection("posts");
+                    // const snapshot = await collectionRef.get();
+                    
+                    // if (!snapshot.empty) {
+                    //     snapshot.forEach((doc) => {
+                    //         if (doc.exists) {
+                    //             const data = doc.data();
+                    //             posts.push(data);
+                    //         }
+                    //     });
+                    // } else {
+                    //     console.log("No posts found in the collection");
+                    // }
+
+                    // Fatch all posts using the refrence list (postsRefList)
+                    await fetchDocumentsFromReferences(postsRefList, uid, collectionName)
+                    .then((documents) => {
+                        // console.log("\n FatchReturn = " + JSON.stringify(documents, null, 2));
+
+                        // Add followings posts to the posts array
+                        // posts.concat(documents);
+                        documents.forEach((doc) => {
+                            posts.push(doc);
+                        });
+
+                        // console.log("\n posts = " + JSON.stringify(posts, null, 2));
+
+                        // console.log("\n\nBefore:\n\n" + JSON.stringify(posts, null , 2));
+
+                        // Sort the posts according to their time stamp
+                        posts.sort((a, b) => {
+                            // console.log("\n\na = " + JSON.stringify(a, null , 2) + "\n\n");
+                            
+                            const compare = Date.parse(a.date_created.trim()) - Date.parse(b.date_created.trim())
+                            // console.log("\n\ncompare = " + Date.parse(a.date_created) + " - " + Date.parse(b.date_created) + "== " + compare + "\n\n");
+
+                            return compare});
+
+                        // console.log("\n\nAfter:\n\n" + JSON.stringify(posts, null , 2));
+
+                        // Create the response
+                        const data = {
+                            posts: posts,
+                            user: user,
+                            account: settings,
+                          };
+                          const jsonData = JSON.stringify(data);
+                          console.log(jsonData);
+    
+                          parentPort.postMessage({
+                            success: true,
+                            data: jsonData
+                          });
+                    })
+                    .catch((error) => {
+                        console.error("getUserAndHisFeedPosts - fetchDocumentsFromReferences - Error: ", error);
+                        parentPort.postMessage({ success: false, error: "Error: " + error});
+
+                    });
+
+
+                } else {
+                    console.log('getBothUserAndHisSettings: Account Document not found!');
+                    parentPort.postMessage({ success: false, error: "Account Document not found!"});
+                }
+            }).catch(error => {
+                console.log('getBothUserAndHisSettings: Error getting Account document:', error);
+                parentPort.postMessage({ success: false, error: "Error: " + error });
+            });
+
+        } else {
+            console.log('getBothUserAndHisSettings: User Document not found!');
+            parentPort.postMessage({ success: false, error: "User Document not found!"});
+        }
+    }).catch(error => {
+        console.log('getBothUserAndHisSettings: Error getting User document:', error);
+        parentPort.postMessage({ success: false, error: "Error: " + error });
+    });
+
+    console.log(" ======================== out of getUserAndHisFeedPosts ==========================\n")
 
 }    
 
@@ -1815,6 +1950,9 @@ while (true) {
             break;
         case 'reportIllegalPost':
             result = await reportIllegalPost(message.data);
+            break;
+        case 'getUserAndHisFeedPosts':
+            result = await getUserAndHisFeedPosts(message.data);
             break;
         default:
           break;

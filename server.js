@@ -1,6 +1,6 @@
 // using the express module as our server using the require methood
 import express from 'express';
-import {reportIllegalPostHandler, followUnfollowHandler, deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
+import {getUserAndHisFeedPostsHandler, reportIllegalPostHandler, followUnfollowHandler, deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler } from './entryController.js';
 import morgan from 'morgan';
 import apicache from 'apicache';
 
@@ -257,10 +257,20 @@ app.get('/getContactsUsers/:uid', (req, res) => {
   /**
  * get User Feed Posts for the front page of the app. 
  * @param uid {@code string}
- * @returns User & UserAccountSettings
+ * @returns Array of posts
  */
   app.get('/getUserFeedPosts/:uid', (req, res) => { 
     getUserFeedPostsHandler(req, res)})
+
+
+  /**
+ * get User Feed Posts for the front page of the app. 
+ * @param uid {@code string}
+ * @returns User & Array of posts
+ */
+  app.get('/getUserAndHisFeedPosts/:uid', (req, res) => { 
+    getUserAndHisFeedPostsHandler(req, res)})
+
 
 
   /**

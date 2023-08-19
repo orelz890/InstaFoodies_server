@@ -35,6 +35,7 @@ const GET_LIKED_OR_CART_POSTS = 24;
 const DELETE_USER_POST = 25;
 const FOLLOW_OR_UNFOLLOW = 26;
 const REPORT_ILLEGAL_POST = 27;
+const GET_USER_AND_FEED = 28;
 
 
 
@@ -110,7 +111,8 @@ const signupHendler = async (req, res) => {
         phone_number: req.body.phone_number || "-1",
         state: req.body.state || "online",
         date: req.body.date || "",
-        time: req.body.time || ""
+        time: req.body.time || "",
+        paypalClientId: req.body.paypalClientId || "",
     };
     addTask(taskData, res);
 };
@@ -156,7 +158,8 @@ const patchUserHandler = async (req, res, ref) => {
         work: PATCH_USER,
         uid: req.params.uid,
         phone_number: req.body.phone_number,
-        full_name: req.body.full_name
+        full_name: req.body.full_name,
+
     };
     addTask(taskData, res);
 };
@@ -169,6 +172,8 @@ const patchUserAccountSettingsHandler = async (req, res, ref) => {
         uid: req.params.uid,
         description: req.body.description,
         website: req.body.website,
+        paypalClientId: req.body.paypalClientId,
+
     };
     addTask(taskData, res);
 };
@@ -354,6 +359,21 @@ const getUserFeedPostsHandler = async (req, res) => {
 };
 
 
+const getUserAndHisFeedPostsHandler = async (req, res) => {
+    console.log("im in getUserAndHisFeedPostsHandler\n");
+
+    let uid = req.params.uid;
+
+    console.log("id = " + uid);
+
+    const taskData = {
+        work: GET_USER_AND_FEED,
+        uid: uid
+    };
+    addTask(taskData, res);
+};
+
+
 const getProfileFeedPostsHandler = async (req, res) => {
     console.log("im in getProfileFeedPostsHandler\n");
 
@@ -480,4 +500,4 @@ const reportIllegalPostHandler = async (req, res) => {
     addTask(taskData, res);
 };
 
-  export {reportIllegalPostHandler, followUnfollowHandler, deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
+  export {getUserAndHisFeedPostsHandler, reportIllegalPostHandler, followUnfollowHandler, deleteProfilePostsHandler, getLikedOrCartPostsHandler, addOrRemoveCartPostHandler, addOrRemoveLikeToPostCommentHandler, getPostCommentsHandler, addCommentToPostHandler, addOrRemovePostLikedHandler, getProfileFeedPostsHandler, getUserFeedPostsHandler, uploadNewPostHandler, uploadProfilePhotoHandler, getBothUserAndHisSettingsHandler, getFollowingUsersAndAccountsHandler, getContactsUsersAndSettingsHandler, getRequestsHandler, getContactsHandler, getFollowingUsersHandler, getChatGroupHandler, createNewChatGroupHandler, executeCheckUserNameHandler, signupHendler, loginHendler, getUserHendler, patchUserHandler, patchUserAccountSettingsHandler, deleteObjectFromRefHendler};
