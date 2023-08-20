@@ -298,6 +298,17 @@ You can follow this step-by-step guide or watch the video tutorial on [YouTube](
 
 This script: `powershell -ExecutionPolicy Bypass` allows running scripts without permanently changing the system's execution policy.
 
+
+### In Practice
+
+| Start Nginx Load Balancer |
+| :---: |
+| <img src="pics/Nginx_usage.png" alt="Nginx_usage" width="750" /> |
+| Server Creation With Pm2 |
+| <img src="pics/pm2_creation.png" alt="pm2_creation" width="750" /> |
+| Servers Are Running && Waiting For Tasks |
+| <img src="pics/pm2_resting.png" alt="pm2_resting" width="750" /> |
+
 ## Useful Sources
 
 - [Building the Android Side (Client) Tutorial](https://www.youtube.com/watch?v=ycja50TzjoU)
