@@ -353,7 +353,6 @@ npx cross-env pm2 list
 | <img src="pics/pm2_resting.png" alt="pm2_resting" width="700" /> |
 
 
-
 ## Useful Sources
 
 - [Building the Android Side (Client) Tutorial](https://www.youtube.com/watch?v=ycja50TzjoU)
