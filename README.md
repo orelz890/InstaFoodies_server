@@ -39,6 +39,35 @@ Welcome to the Insta Foodies Server repository! This server-side component is an
   
 ## 💻 System Architecture
 
+Combination of different architectural patterns and concepts to achieve a specific application's goals. While it doesn't precisely fit into any single established pattern, it incorporates several principles to create a custom solution:
+
+
+**Task Queue Architecture:**
+- This pattern focuses on efficiently distributing tasks among available workers, allowing for parallel processing and scalability.
+
+
+**Microservices-like Separation of Responsibilities:**
+- Division of components similar to microservices - separation of concerns.
+
+
+**Controller Pattern:**
+- The controller, processes incoming requests, manages the flow of data, and delegates tasks.
+
+
+**Server-Client Model:**
+- Clients make requests to the server, which manages the task distribution and worker responses.
+
+
+**Asynchronous Event-Driven Processing:**
+- The architecture focus on queuing tasks and asynchronous processing is reminiscent of event-driven architectures. Events (tasks) are queued and processed independently when resources are available.
+
+
+**Distributed Processing:**
+- The delegation of tasks to worker components can be considered a form of distributed processing, distributing computation across multiple units to achieve efficiency.
+
+
+
+
 ### 👨‍💻 Architectural Design
 
 The Insta Foodies Server follows the Model-View-ViewModel (MVVM) architectural pattern, promoting the separation of concerns and ease of codebase maintenance. This design consists of three core components:
@@ -297,6 +326,33 @@ You can follow this step-by-step guide or watch the video tutorial on [YouTube](
     ```
 
 This script: `powershell -ExecutionPolicy Bypass` allows running scripts without permanently changing the system's execution policy.
+
+
+### 📝 In Practice
+
+```sh
+nginx -t
+start nginx
+```
+| Start Nginx Load Balancer |
+| :---: |
+| <img src="pics/Nginx_usage.png" alt="Nginx_usage" width="700" /> |
+
+```sh
+npx cross-env PORT=3000 pm2 start --name server1 server.js
+```
+| Server Creation With Pm2 |
+| :---: |
+| <img src="pics/pm2_creation.png" alt="pm2_creation" width="700" /> |
+
+```sh
+npx cross-env pm2 list
+```
+| Servers Are Running && Waiting For Tasks |
+| :---: |
+| <img src="pics/pm2_resting.png" alt="pm2_resting" width="700" /> |
+
+
 
 ## Useful Sources
 
