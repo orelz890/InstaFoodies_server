@@ -365,9 +365,17 @@ npx cross-env pm2 list
 
 Once the server is set up and running, it seamlessly integrates with the Insta Foodies mobile application. Users can enjoy the unique and delightful experience of connecting with fellow food enthusiasts, exploring recipes, sharing content, and engaging in real-time chat.
 
-## 📄 License
 
-This project is licensed under the MIT License. Feel free to use and modify the code as needed.
+## 📜 License
 
-Thank you for choosing the Insta Foodies Server for your food enthusiasts' social app. We're excited to see the delightful experiences you create for food lovers around the world! If you have any questions or need further assistance, please don't hesitate to reach out to our support team. Happy coding! 🍕
+This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/). This means that you are free to share, adapt, and build upon the material, as long as you provide appropriate attribution, do not use the material for commercial purposes, and do not impose additional legal restrictions.
+
+Please note that this license is designed to prevent commercial usage of the code. If you have any questions about how you can use or adapt this code within the terms of the license, feel free to [contact us](mailto:your.email@example.com) 📮.
+
+## 📬 Contact
+
+If you have any questions, suggestions, or feedback, please don't hesitate to contact us:
+
+smarterfoodies@gmail.com 📮.
+
 
