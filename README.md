@@ -67,15 +67,6 @@ Combination of different architectural patterns and concepts to achieve a specif
 
 
 
-
-### 👨‍💻 Architectural Design
-
-The Insta Foodies Server follows the Model-View-ViewModel (MVVM) architectural pattern, promoting the separation of concerns and ease of codebase maintenance. This design consists of three core components:
-
-- Model: Handles communication with the database and data-related logic.
-- View: Interfaces with the Android UI, managing layouts and user interface elements.
-- View Model: Prepares data from the Model for the UI and contains UI-related logic.
-
 ### 📦 Decomposition Description
 
 The server is modularized into several distinct modules, each responsible for specific functionalities:
@@ -93,7 +84,7 @@ The server is modularized into several distinct modules, each responsible for sp
 
 ### 🎨 Design Rationale
 
-The Model-View-ViewModel (MVVM) architectural pattern was selected for its ability to separate concerns and ensure a well-organized codebase. Decomposing the application into modules enhances code readability, maintainability, and scalability. Each module serves a specific purpose, fostering collaboration and allowing new features to be seamlessly integrated.
+Decomposing the application into modules enhances code readability, maintainability, and scalability. Each module serves a specific purpose, fostering collaboration and allowing new features to be seamlessly integrated.
 
 ## 📊 Data Design
 
